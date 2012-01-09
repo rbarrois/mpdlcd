@@ -27,7 +27,6 @@ setup(
     keywords=['MPD', 'lcdproc', 'lcd'],
     packages=['mpdlcd'],
     scripts=['bin/mpdlcdd'],
-    data=['README', 'LICENSE'],
     license='MIT',
     requires=[
         'mpd',
