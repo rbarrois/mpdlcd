@@ -62,7 +62,7 @@ class MpdRunner(object):
 
         artist_width = width - 6  # <elapsed> is 5 chars wide, plus 1 space.
         screen.add_scroller_widget(LCD_ARTIST_WIDGET,
-            left=1, top=1, right=artist_width, bottom=1, speed=1,
+            left=1, top=1, right=artist_width, bottom=1, speed=4,
             text=' ' * artist_width)
 
         screen.add_string_widget(LCD_ELAPSED_WIDGET,
