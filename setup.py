@@ -20,7 +20,7 @@ def get_version():
 setup(
     name='mpdlcd',
     version=get_version(),
-    description="A small tool to display MPD status on a lcdproc server.",
+    description="Display MPD status on a lcdproc server.",
     author='Raphaël Barrois',
     author_email='raphael.barrois@polytechnique.org',
     url='http://github.com/rbarrois/mpdlcd',
