@@ -14,7 +14,7 @@ depend() {
 
 start() {
     ebegin "Starting MPD-lcd daemon"
-    start-stop-daemon --start --quiet --background --exec /usr/bin/mpdlcdd --pidfile /var/run/mpdlcdd.pid --make-pidfile -- \
+    start-stop-daemon --start --quiet --background --user nobody --exec /usr/bin/mpdlcdd --pidfile /var/run/mpdlcdd.pid --make-pidfile -- \
       --lcdproc="${LCDPROC_SERVER}" --mpd="${MPD_SERVER}" --loglevel="${LOGLEVEL}" --syslog --syslog-facility="${SYSLOG_FACILITY}"
     eend $?
 }
