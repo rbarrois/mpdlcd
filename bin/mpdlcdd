@@ -114,8 +114,8 @@ def _setup_logging(syslog=False, syslog_facility=DEFAULT_SYSLOG_FACILITY,
             address = syslog_server
         else:
             address = _make_hostport(syslog_server, 'localhost', logging.SYSLOG_UDP_PORT)
-            handler = logging_handlers.SysLogHandler(address, facility=syslog_facility)
-            handler.setFormatter(verbose_formatter)
+        handler = logging_handlers.SysLogHandler(address, facility=syslog_facility)
+        handler.setFormatter(verbose_formatter)
 
     elif logfile == '-':
         handler = logging.StreamHandler()
