@@ -1,5 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+# Copyright (c) 2011-2012 Raphaël Barrois
 
 from distutils.core import setup
 from distutils import cmd
@@ -26,6 +27,7 @@ setup(
     keywords=['MPD', 'lcdproc', 'lcd'],
     packages=['mpdlcd'],
     scripts=['bin/mpdlcdd'],
+    data=['README', 'LICENSE'],
     license='MIT',
     requires=[
         'mpd',
