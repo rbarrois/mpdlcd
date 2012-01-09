@@ -24,6 +24,7 @@ setup(
     author='Raphaël Barrois',
     author_email='raphael.barrois@polytechnique.org',
     url='http://github.com/rbarrois/mpdlcd',
+    download_url="http://pypi.python.org/pypi/mpdlcd/",
     keywords=['MPD', 'lcdproc', 'lcd'],
     packages=['mpdlcd'],
     scripts=['bin/mpdlcdd'],
