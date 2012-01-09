@@ -1,0 +1,26 @@
+#!/sbin/runscript
+# Copyright 1999-2012 Gentoo Foundation
+# Distributed under the terms of the GNU General Public License v2
+# $Header: $
+
+LCDPROC_SERVER=${LCDPROC_SERVER:-}
+MPD_SERVER=${MPD_SERVER:-}
+LOGLEVEL=${LOGLEVEL:-info}
+SYSLOG_FACILITY=${SYSLOG_FACILITY:-daemon}
+
+depend() {
+    use net
+}
+
+start() {
+    ebegin "Starting MPD-lcd daemon"
+    start-stop-daemon --start --quiet --background --exec /usr/bin/mpdlcdd --pidfile /var/run/mpdlcdd.pid --make-pidfile -- \
+      --lcdproc="${LCDPROC_SERVER}" --mpd="${MPD_SERVER}" --loglevel="${LOGLEVEL}" --syslog --syslog-facility="${SYSLOG_FACILITY}"
+    eend $?
+}
+
+stop() {
+    ebegin "Stopping MPD-lcd daemon"
+    start-stop-daemon --stop --exec /usr/bin/mpdlcdd --pidfile /var/run/mpdlcdd.pid
+    eend $?
+}
