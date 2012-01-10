@@ -5,7 +5,6 @@ import datetime
 import logging
 import time
 
-import mpdwrapper
 from lcdproc import server
 
 
