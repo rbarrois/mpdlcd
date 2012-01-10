@@ -3,12 +3,22 @@
 
 import logging
 import mpd
+import time
+import socket
 
 
 logger = logging.getLogger(__name__)
 
 STATE_PLAY = 'play'
 STATE_STOP = 'stop'
+
+
+class MPDError(Exception):
+    pass
+
+
+class MPDConnectionError(MPDError):
+    pass
 
 
 class MPDClient(object):
@@ -19,11 +29,23 @@ class MPDClient(object):
         self.host = host
         self.port = port
 
-    def connect(self):
+    def connect(self, retries=3, wait=3):
         if not self._connected:
             logger.info('Connecting to MPD server at %s:%s', self.host, self.port)
-            self._client.connect(host=self.host, port=self.port)
-            self._connected = True
+            for _ in xrange(retries):
+                try:
+                    self._client.connect(host=self.host, port=self.port)
+                except socket.error as e:
+                    logger.warning('Unable to connect to MPD server %s:%s: %s',
+                        self.host, self.port, e)
+                    time.sleep(wait)
+                else:
+                    self._connected = True
+                    return
+            logger.error('Unable to connect to MPD %s:%s after %d attempts.',
+                self.host, self.port, retries)
+            raise MPDConnectionError('Unable to connect to MPD at %s:%s' %
+                    (self.host, self.port))
 
     @property
     def status(self):

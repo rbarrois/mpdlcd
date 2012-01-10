@@ -7,6 +7,8 @@ from lcdproc import server as lcdproc_server
 import logging
 from logging import handlers as logging_handlers
 import optparse
+import socket
+import time
 
 from mpdlcd import lcdrunner
 from mpdlcd import mpdwrapper
@@ -33,12 +35,26 @@ def _make_hostport(conn, default_host, default_port):
 
     return host, int(port)
 
+logger = logging.getLogger('mpdlcdd')
 
-def main(lcdproc='', mpd='', lcd_debug=False, **kwargs):
+def _make_lcdproc(lcd_host, lcd_port, lcd_debug=False, retries=3, wait=3):
+    for _ in xrange(retries):
+        try:
+            return lcdproc_server.Server(lcd_host, lcd_port, debug=lcd_debug)
+        except socket.error as e:
+            logger.warning('Unable to connect to lcdproc server %s:%s: %s',
+                lcd_host, lcd_port, e)
+            time.sleep(wait)
+    logger.error('Unable to connect to lcdproc %s:%s after %d attempts.',
+        lcd_host, lcd_port, retries)
+    raise SystemExit(1)
+
+
+def main(lcdproc='', mpd='', lcd_debug=False, retries=3, wait=3):
     lcd_host, lcd_port = _make_hostport(lcdproc, 'localhost', 13666)
     mpd_host, mpd_port = _make_hostport(mpd, 'localhost', 6600)
 
-    lcd = lcdproc_server.Server(lcd_host, lcd_port, debug=lcd_debug)
+    lcd = _make_lcdproc(lcd_host, lcd_port, lcd_debug, retries, wait)
     client = mpdwrapper.MPDClient(mpd_host, mpd_port)
     runner = lcdrunner.MpdRunner(client, lcd)
 
