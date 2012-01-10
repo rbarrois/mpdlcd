@@ -20,6 +20,8 @@ DEFAULT_LOGLEVEL = 'warning'
 DEFAULT_SYSLOG_FACILITY = 'daemon'
 DEFAULT_SYSLOG_ADDRESS = '/dev/log'
 DEFAULT_LOGFILE = '-'  # For stdout
+DEFAULT_RETRIES = 3
+DEFAULT_RETRY_WAIT = 3
 
 
 def _make_hostport(conn, default_host, default_port):
@@ -37,24 +39,26 @@ def _make_hostport(conn, default_host, default_port):
 
 logger = logging.getLogger('mpdlcdd')
 
-def _make_lcdproc(lcd_host, lcd_port, lcd_debug=False, retries=3, wait=3):
+def _make_lcdproc(lcd_host, lcd_port, lcd_debug=False, retries=DEFAULT_RETRIES,
+        retry_wait=DEFAULT_RETRY_WAIT):
     for _ in xrange(retries):
         try:
             return lcdproc_server.Server(lcd_host, lcd_port, debug=lcd_debug)
         except socket.error as e:
             logger.warning('Unable to connect to lcdproc server %s:%s: %s',
                 lcd_host, lcd_port, e)
-            time.sleep(wait)
+            time.sleep(retry_wait)
     logger.error('Unable to connect to lcdproc %s:%s after %d attempts.',
         lcd_host, lcd_port, retries)
     raise SystemExit(1)
 
 
-def main(lcdproc='', mpd='', lcd_debug=False, retries=3, wait=3):
+def main(lcdproc='', mpd='', lcd_debug=False, retries=DEFAULT_RETRIES,
+        retry_wait=DEFAULT_RETRY_WAIT):
     lcd_host, lcd_port = _make_hostport(lcdproc, 'localhost', 13666)
     mpd_host, mpd_port = _make_hostport(mpd, 'localhost', 6600)
 
-    lcd = _make_lcdproc(lcd_host, lcd_port, lcd_debug, retries, wait)
+    lcd = _make_lcdproc(lcd_host, lcd_port, lcd_debug, retries, retry_wait)
     client = mpdwrapper.MPDClient(mpd_host, mpd_port)
     runner = lcdrunner.MpdRunner(client, lcd)
 
@@ -82,6 +86,14 @@ def _make_parser():
             help='Connect to mpd running at MPD', metavar='MPD')
     group.add_option('--lcdproc-debug', dest='lcd_debug', action='store_true',
             help='Add full debug output for lcdproc', default=False)
+    group.add_option('-r', '--retries', dest='retries', type='int',
+            help='Retry connections RETRY times (default: %d)' %
+                    DEFAULT_RETRIES,
+            metavar='RETRY')
+    group.add_option('-w', '--retry-wait', dest='retry_wait', type='float',
+            help='Wait RETRY_WAIT between connection attempts (default: %.1fs)' %
+                    DEFAULT_RETRY_WAIT,
+            metavar='RETRY_WAIT')
     parser.add_option_group(group)
 
     # Logging options
@@ -161,4 +173,4 @@ if __name__ == '__main__':
     _setup_logging(**extract_options(options,
         'syslog', 'syslog_facility', 'syslog_server', 'logfile', 'loglevel'))
     main(**extract_options(options,
-        'lcdproc', 'mpd', 'lcd_debug'))
+        'lcdproc', 'mpd', 'lcd_debug', 'retries', 'retry_wait'))
