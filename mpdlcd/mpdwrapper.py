@@ -61,23 +61,33 @@ class MPDClient(object):
         logger.debug('Fetchin MPD repeat state')
         return self.status['repeat'] == 1
 
+    def _parse_time(self, time):
+        try:
+            return int(time)
+        except ValueError:
+            return None
+
     @property
     def elapsed(self):
         logger.debug('Fetching MPD elapsed time')
         time = self.status.get('time')
-        if time:
-            return time.split(':')[0]
-        else:
-            return None
+        return self._parse_time(time.split(':')[0])
 
     @property
     def total(self):
         logger.debug('Fetching MPD total time')
         time = self.status.get('time')
-        if time:
-            return time.split(':')[0]
+        return self._parse_time(time.split(':')[-1])
+
+    @property
+    def elapsed_and_total(self):
+        logger.debug('Fetching MPD elapsed and total time')
+        time = self.status.get('time')
+        if ':' in time:
+            elapsed, total = time.split(':', 1)
+            return self._parse_time(elapsed), self._parse_time(total)
         else:
-            return None
+            return (None, None)
 
     @property
     def state(self):

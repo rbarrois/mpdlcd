@@ -11,6 +11,8 @@ import time
 
 from mpdlcd import lcdrunner
 from mpdlcd import mpdwrapper
+from mpdlcd import display_fields
+from mpdlcd import display_pattern
 
 
 DEFAULT_MPD_PORT = 6600
@@ -52,6 +54,11 @@ def _make_lcdproc(lcd_host, lcd_port, lcd_debug=False, retries=DEFAULT_RETRIES,
     raise SystemExit(1)
 
 
+def _make_pattern(pattern_txt):
+    registry = display_fields.FieldRegistry()
+    return display_pattern.ScreenPattern(pattern_txt, registry)
+
+
 def run_forever(lcdproc='', mpd='', lcd_debug=False, retries=DEFAULT_RETRIES,
         retry_wait=DEFAULT_RETRY_WAIT):
     lcd_host, lcd_port = _make_hostport(lcdproc, 'localhost', 13666)
@@ -60,6 +67,16 @@ def run_forever(lcdproc='', mpd='', lcd_debug=False, retries=DEFAULT_RETRIES,
     lcd = _make_lcdproc(lcd_host, lcd_port, lcd_debug, retries, retry_wait)
     client = mpdwrapper.MPDClient(mpd_host, mpd_port)
     runner = lcdrunner.MpdRunner(client, lcd)
+
+    patterns = {
+        2: [
+            """{song format="%(artist)s",speed=4} {elapsed}""",
+            """{song format="%(title)s",speed=2} {state}""",
+        ],
+    }
+
+    pattern = _make_pattern(patterns[runner.screen.height])
+    runner.setup_pattern(pattern)
 
     client.connect()
     runner.run()
@@ -88,11 +105,11 @@ def _make_parser():
     group.add_option('-r', '--retries', dest='retries', type='int',
             help='Retry connections RETRY times (default: %d)' %
                     DEFAULT_RETRIES,
-            metavar='RETRY')
+            metavar='RETRY', default=DEFAULT_RETRIES)
     group.add_option('-w', '--retry-wait', dest='retry_wait', type='float',
             help='Wait RETRY_WAIT between connection attempts (default: %.1fs)' %
                     DEFAULT_RETRY_WAIT,
-            metavar='RETRY_WAIT')
+            metavar='RETRY_WAIT', default=DEFAULT_RETRY_WAIT)
     parser.add_option_group(group)
 
     # Logging options
