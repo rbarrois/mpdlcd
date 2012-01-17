@@ -1,0 +1,314 @@
+.TH "MPDlcd" 1 "January 2012" "MPDlcd v0.1" "User Commands"
+.SH NAME
+MPDlcd \- A tool to display MPD status on a lcdproc server
+.
+.
+.SH SYNOPSIS
+.B mpdlcd
+.RI --help
+
+.B mpdlcd
+.RI [ options ]
+.
+.
+.SH DESCRIPTION
+.P
+MPDlcd is a tool to display the status of a Music Player Daemon on a
+.BR lcdproc (1)
+server.
+.P
+It supports definition of custom screen patterns, and adapts them to the LCD width and height.
+Configuration is done in the
+.I /etc/mpdlcd.conf
+file and can be overridden through command-line options.
+.P
+.BR mpdlcd
+supports logging to syslog (local or remote), stdout or to a user-chosen file.
+.
+.
+.SH SCREEN PATTERNS
+The lines to display on the LCD are defined in a
+.BR pattern,
+which describes how fields should be arranged on each line.
+
+Width is automatically adjusted to the screen size;
+.BR mpdlcd
+will automatically select a pattern whose length matches the screen height.
+.
+.SS Pattern syntax
+The general format of a pattern line is:
+.br
+.B "{song format='%(artist)s - %(title)s',speed=2} {elapsed}/{total}"
+
+The escaping character is
+.BR "\(rs" " (backslash):"
+it will always make the next character non-special, anywhere in the string.
+
+A pattern line may contain:
+.br
+- Fields, enclosed in curly brackets -- the
+.I {song...}
+,
+.I "{elapsed}"
+or
+.I "{total}"
+blocks in the above example;
+.br
+- Raw text, which is displayed as is -- the
+.I "'space'"
+,
+.I "'/'"
+blocks of the example.
+.
+
+The definition of a field is:
+.br
+.IR "{kind}" " or " "{kind option1=val1,option2=val2,...}"
+where
+.I kind
+is the field kind (see below), followed by an optional list of field options.
+The option values may be enclosed in simple quotes
+.IR "'" " or double quotes " \*(lq "."
+
+Any text which does not belong to a field will be displayed as is, in a fixed manner (using the
+.I fixed
+field).
+.
+.SS Fields
+.
+.P
+Elements displaying MPD informations are described in
+.IR fields "."
+Those fields are refreshed at regular intervals, when related MPD data (song, elapsed time, state) is updated.
+
+Available fields are:
+.br
+.RS 5
+.HP
+.B fixed
+Display a fixed string.
+.br
+Accepts the following options:
+.RS 10
+.
+.TP
+.I text
+The text to display
+.
+.RE
+.
+.HP
+.B state
+Displays the MPD state with an adequate icon --
+.IR PLAY ", " PAUSE " or " STOP.
+.
+.HP
+.B total
+The total duration of the current song, in a
+.I "mm:ss"
+format.
+.
+.HP
+.B elapsed
+The elapsed time in the current song, in a
+.I "mm:ss"
+format.
+.
+.HP
+.B remaining
+The remaining time for the current song, in a
+.I "mm:ss"
+format.
+.
+.HP
+.B song
+Informations about the current song, as a scrolling text.
+.br
+Accepts the following options:
+.RS 10
+.
+.TP
+.I speed
+The scroll rate (move every N seconds), default 2.
+.
+.TP
+.I width
+Fix the width of the field, or automatically adjust it if set to -1 (the default).
+.
+.TP
+.I format
+The printf-like string to use as a template for the displayed text.
+Strings with the
+.I %(<tag>)s
+format will be replaced by the given song tag, which can be one of
+.IR title ", " artist ", " album " and " duration
+.RE
+.RE
+.
+.
+.SH OPTIONS
+.
+.\" --help
+.TP
+.BR \-h ", " \-\^\-help
+Output a brief help message.
+.
+.\" --config
+.TP
+.BR \-c ", " \-\^\-config " CONFIG_FILE"
+Read configuration from the given file instead of the default
+.I /etc/mpdlcd.conf
+.
+.
+.SS Display options
+.
+.\" --refresh
+.TP
+.BI \-\^\-refresh " RATE"
+The refresh rate for the display (float).
+Queries will be sent to the MPD at this rate.
+.
+.\" --pattern
+.TP
+.BI \-\^\-pattern " PATTERN"
+Force the use of the given pattern, skipping automatic choice based on screen height.
+Lines of the pattern must be separated by a line break 
+.I (\\\\n).
+.
+.\" --patterns
+.TP
+.BI \-\^\-patterns " HEIGHT:PATTERN"
+Register a pattern for a screen height.
+This option can be specified multiple times to set various patterns for various heights.
+If more than one pattern is provided for the same height, the last one is used, and a warning is issued.
+.
+.\" --extra-fields
+.TP
+.BI \-\^\-extra-fields " MODULE_LIST"
+.B "Advanced feature!"
+Import Python modules from this comma-separated list as a source of extra fields.
+See the internal documentation for details on the specific API to use.
+.
+.SS Connection options
+.
+.\" --lcdproc
+.TP
+.BI \-l\ \-\^\-lcdproc " HOST:PORT"
+Connect to the 
+.BR lcdproc
+server at the given 
+.I HOST:PORT
+.
+.\" --mpd
+.TP
+.BI \-m,\ \-\^\-mpd " HOST:PORT"
+Connect to the
+.BR mpd
+server at the given
+.I HOST:PORT
+.
+.\" --retries
+.TP
+.BI \-r,\ \-\^\-retries " RETRIES"
+Number of retries at startup before considering the server as dead
+.
+.\" --retry-wait
+.TP
+.BI \-w,\ \-\^\-retry-wait " RETRY_WAIT"
+Time to wait between connection retries.
+.
+.\" --lcdd-debug
+.TP
+.BI \-\^\-lcdd-debug
+Send to stderr all messages exchanged with the
+.BR LCDd (1)
+server
+.
+.SS Logging options
+.
+.\" --syslog
+.TP
+.BI \-s,\ \-\^\-syslog
+Whether to log to syslog
+.
+.\" --syslog-facility
+.TP
+.BI \-\^\-syslog-facility " FACILITY"
+The syslog facility to which messages should be sent
+.
+.\" --syslog-server
+.TP
+.BI \-\^\-syslog-server " SERVER"
+Log to the syslog server at SERVER.
+Use
+.I /dev/log
+to log on the local system.
+.
+.\" --logfile
+.TP
+.BI \-f,\ \-\^\-logfile " LOGFILE"
+Log to the local file LOGFILE; can be used along with
+.B \-\-syslog.
+.
+.\" --loglevel
+.TP
+.BI \-\^\-loglevel " LOGLEVEL"
+Log all messages at or above the given level.
+Options are:
+.I debug
+.I info
+.I warning
+.I error
+.I critical
+.
+.\" --debug
+.TP
+.BI \-\^\-debug " COMPONENTS"
+Enable debug for the given comma-separated list of components, to choose from:
+.
+.RS
+.TP
+.I lcdproc
+Debug the interactions with lcdproc
+.
+.TP
+.I mpd 
+Debug the interactions with mpd
+.
+.TP
+.I display_fields 
+Debug the setup of display lines and fields
+.
+.TP
+.I display_fields.parser
+Debug the pattern parser
+.RE
+
+This option also accepts any Python logger name, which can be helpful to debug extra components (network libs, ...)
+.
+.
+.SH FILES
+.I /etc/mpdlcd.conf
+.RS
+Global configuration file for 
+.BR mpdlcd.
+See 
+.BR mpdlcd.conf (5)
+for further details.
+.RE
+.SH BUGS
+.
+Known limitations:
+.br
+- It is currently impossible to have two 'flexible' fields on the same line.
+.br
+- There lacks a "padding" pattern field.
+
+Bugs should be filled at 
+.B http://github.com/rbarrois/mpdlcd/issues
+.
+.SH AUTHORS
+mpdlcd is written by Raphael Barrois <raphael.barrois@polytechnique.org>.
+.
+.SH SEE ALSO
+mpdlcd.conf(5), mpd(1), lcdproc(1), LCDd(1)
