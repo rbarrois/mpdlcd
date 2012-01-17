@@ -14,15 +14,17 @@ from mpdlcd import mpdwrapper
 from mpdlcd import display_fields
 from mpdlcd import display_pattern
 
+DEFAULT_REFRESH = 0.5
 
 DEFAULT_MPD_PORT = 6600
 DEFAULT_LCD_PORT = 13666
+DEFAULT_RETRIES = 3
+DEFAULT_RETRY_WAIT = 3
+
 DEFAULT_LOGLEVEL = 'warning'
 DEFAULT_SYSLOG_FACILITY = 'daemon'
 DEFAULT_SYSLOG_ADDRESS = '/dev/log'
 DEFAULT_LOGFILE = '-'  # For stdout
-DEFAULT_RETRIES = 3
-DEFAULT_RETRY_WAIT = 3
 
 
 def _make_hostport(conn, default_host, default_port):
@@ -94,7 +96,15 @@ LOGLEVELS = {
 def _make_parser():
     parser = optparse.OptionParser()
 
-    # General options
+    # Display options
+    group = optparse.OptionGroup(parser, 'Display')
+    group.add_option('--refresh', dest='refresh', type='float',
+            help='Refresh the display every REFRESH seconds (default: %.1fs)' %
+                    DEFAULT_REFRESH,
+            metavar='REFRESH', default=DEFAULT_REFRESH)
+    parser.add_option_group(group)
+
+    # Connection options
     group = optparse.OptionGroup(parser, 'Connection')
     group.add_option('-l', '--lcdproc', dest='lcdproc',
             help='Connect to lcdproc at LCDPROC', metavar='LCDPROC')
