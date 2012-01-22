@@ -147,6 +147,9 @@ def _make_parser():
             help='Logging level (%s; default: %s)' %
                     ('/'.join(LOGLEVELS.keys()), DEFAULT_LOGLEVEL),
             choices=LOGLEVELS.keys(), default=DEFAULT_LOGLEVEL)
+    group.add_option('-d', '--debug', dest='debug', default='',
+            help="Log debug output from the MODULES components",
+            metavar='MODULES')
 
     parser.add_option_group(group)
 
@@ -155,7 +158,7 @@ def _make_parser():
 
 def _setup_logging(syslog=False, syslog_facility=DEFAULT_SYSLOG_FACILITY,
         syslog_server=DEFAULT_SYSLOG_ADDRESS, logfile=DEFAULT_LOGFILE,
-        loglevel=DEFAULT_LOGLEVEL, **kwargs):
+        loglevel=DEFAULT_LOGLEVEL, debug='', **kwargs):
     level = LOGLEVELS[loglevel]
 
     verbose_formatter = logging.Formatter(
@@ -183,6 +186,10 @@ def _setup_logging(syslog=False, syslog_facility=DEFAULT_SYSLOG_FACILITY,
     root_logger.addHandler(handler)
     root_logger.setLevel(level)
 
+    for module in debug.split(','):
+        logging.getLogger(module).setLevel(logging.DEBUG)
+        logging.getLogger(module).addHandler(handler)
+
 
 def _extract_options(options, *args, **kwargs):
     extract = {}
@@ -197,6 +204,7 @@ def main(argv):
     parser = _make_parser()
     options, args = parser.parse_args(argv)
     _setup_logging(**_extract_options(options,
-        'syslog', 'syslog_facility', 'syslog_server', 'logfile', 'loglevel'))
+        'syslog', 'syslog_facility', 'syslog_server', 'logfile', 'loglevel',
+        'debug'))
     run_forever(**_extract_options(options,
         'lcdproc', 'mpd', 'lcdd_debug', 'retries', 'retry_wait'))
