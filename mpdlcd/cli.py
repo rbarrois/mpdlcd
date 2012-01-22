@@ -98,6 +98,13 @@ def _make_parser():
 
     # Display options
     group = optparse.OptionGroup(parser, 'Display')
+    group.add_option('--pattern', dest='pattern',
+            help='Use this PATTERN (lines separated by \\n)',
+            metavar='PATTERN', default='')
+    group.add_option('--patterns', dest='patterns', action='append',
+            help='Register a PATTERN; the actual pattern is chosen according '
+            'to screen height.',
+            metavar='PATTERN')
     group.add_option('--refresh', dest='refresh', type='float',
             help='Refresh the display every REFRESH seconds (default: %.1fs)' %
                     DEFAULT_REFRESH,
