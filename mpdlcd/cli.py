@@ -61,12 +61,12 @@ def _make_pattern(pattern_txt):
     return display_pattern.ScreenPattern(pattern_txt, registry)
 
 
-def run_forever(lcdproc='', mpd='', lcd_debug=False, retries=DEFAULT_RETRIES,
+def run_forever(lcdproc='', mpd='', lcdd_debug=False, retries=DEFAULT_RETRIES,
         retry_wait=DEFAULT_RETRY_WAIT):
     lcd_host, lcd_port = _make_hostport(lcdproc, 'localhost', 13666)
     mpd_host, mpd_port = _make_hostport(mpd, 'localhost', 6600)
 
-    lcd = _make_lcdproc(lcd_host, lcd_port, lcd_debug, retries, retry_wait)
+    lcd = _make_lcdproc(lcd_host, lcd_port, lcdd_debug, retries, retry_wait)
     client = mpdwrapper.MPDClient(mpd_host, mpd_port)
     runner = lcdrunner.MpdRunner(client, lcd)
 
@@ -111,7 +111,7 @@ def _make_parser():
     group.add_option('-m', '--mpd', dest='mpd',
             help='Connect to mpd running at MPD', metavar='MPD')
     group.add_option('--lcdd-debug', dest='lcdd_debug', action='store_true',
-            help='Add full debug output for LCDd', default=False)
+            help='Add full debug output of LCDd commands', default=False)
     group.add_option('-r', '--retries', dest='retries', type='int',
             help='Retry connections RETRY times (default: %d)' %
                     DEFAULT_RETRIES,
