@@ -42,11 +42,11 @@ def _make_hostport(conn, default_host, default_port):
 
 logger = logging.getLogger('mpdlcdd')
 
-def _make_lcdproc(lcd_host, lcd_port, lcd_debug=False, retries=DEFAULT_RETRIES,
+def _make_lcdproc(lcd_host, lcd_port, lcdd_debug=False, retries=DEFAULT_RETRIES,
         retry_wait=DEFAULT_RETRY_WAIT):
     for _ in xrange(retries):
         try:
-            return lcdproc_server.Server(lcd_host, lcd_port, debug=lcd_debug)
+            return lcdproc_server.Server(lcd_host, lcd_port, debug=lcdd_debug)
         except socket.error as e:
             logger.warning('Unable to connect to lcdproc server %s:%s: %s',
                 lcd_host, lcd_port, e)
@@ -110,8 +110,8 @@ def _make_parser():
             help='Connect to lcdproc at LCDPROC', metavar='LCDPROC')
     group.add_option('-m', '--mpd', dest='mpd',
             help='Connect to mpd running at MPD', metavar='MPD')
-    group.add_option('--lcdproc-debug', dest='lcd_debug', action='store_true',
-            help='Add full debug output for lcdproc', default=False)
+    group.add_option('--lcdd-debug', dest='lcdd_debug', action='store_true',
+            help='Add full debug output for LCDd', default=False)
     group.add_option('-r', '--retries', dest='retries', type='int',
             help='Retry connections RETRY times (default: %d)' %
                     DEFAULT_RETRIES,
@@ -199,4 +199,4 @@ def main(argv):
     _setup_logging(**_extract_options(options,
         'syslog', 'syslog_facility', 'syslog_server', 'logfile', 'loglevel'))
     run_forever(**_extract_options(options,
-        'lcdproc', 'mpd', 'lcd_debug', 'retries', 'retry_wait'))
+        'lcdproc', 'mpd', 'lcdd_debug', 'retries', 'retry_wait'))
