@@ -422,3 +422,69 @@ class ScreenPattern(object):
             st.save_fixed_text()
 
         return st.fields
+
+
+class ScreenPatternList(object):
+    """Hold a list of possible patterns.
+
+    Attributes:
+        patterns (dict(int => str list)): maps a pattern length to the pattern
+            text (as a list of lines)
+        min_patterns (dict(int => str list)): same as patterns, but holds
+            'stripped' patterns.
+        field_registry (mpdlcd.display_fields.FieldRegistry): registry of known
+            fields.
+    """
+
+    def __init__(self, field_registry, *args, **kwargs):
+        super(ScreenPatternList, self).__init__(*args, **kwargs)
+
+        self.patterns = {}
+        self.min_patterns = {}
+        self.field_registry = field_registry
+
+    def add(self, pattern_txt):
+        """Add a pattern to the list.
+
+        Args:
+            pattern_txt (str list): the pattern, as a list of lines.
+        """
+        self.patterns[len(pattern_txt)] = pattern_txt
+
+        low = 0
+        high = len(pattern_txt) - 1
+
+        while not pattern_txt[low]:
+            low += 1
+
+        while not pattern_txt[high]:
+            high -= 1
+
+        min_pattern = pattern_txt[low:high + 1]
+        self.min_pattern[len(min_pattern)] = min_pattern
+
+    def __getitem__(self, size):
+        """Retrieve the best pattern for a given size.
+
+        The algorithm is:
+        - If a pattern is registered for the size, use it
+        - Otherwise, find the longest registered pattern shorter thant size, add
+            some blank lines before, and return it
+        - If no shorter pattern exist, return a blank pattern.
+
+        Args:
+            size (int): the target size
+
+        Returns:
+            ScreenPattern: the best pattern available for that size
+        """
+        if size in self.patterns:
+            return self.patterns[size]
+        for shorter in xrange(size, 0, -1):
+            if shorter in self.min_patterns:
+                pattern = self.min_patterns[shorter]
+
+                # Try to vertically center the pattern
+                prefix = [''] * (size - shorter / 2)
+                return prefix + pattern
+        return ScreenPattern([], self.field_registry)
