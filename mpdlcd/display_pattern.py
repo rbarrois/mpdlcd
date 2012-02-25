@@ -17,6 +17,18 @@ class FormatError(ValueError):
 
 
 class ScreenPattern(object):
+    """A screen pattern description.
+
+    Attributes:
+        lines (str list): the lines of the pattern
+        line_fields (mpdlcd.display_fields.Field list list): List of the fields
+            for each line.
+        widgets (dict(mpdlcd.display_fields.Field => lcdproc.Widget)): widget to
+            use for each field
+        field_registry (mpdlcd.display_fields.FieldRegistry): the registry of
+            available fields.
+    """
+
     def __init__(self, lines, field_registry):
         self.lines = lines
         self.line_fields = []
@@ -24,22 +36,50 @@ class ScreenPattern(object):
         self.field_registry = field_registry
 
     def parse(self):
+        """Parse the lines, and fill self.line_fields accordingly."""
         for line in self.lines:
+            # Parse the line
             field_defs = self.parse_line(line)
             fields = []
+
+            # Convert field parameters into Field objects
             for (kind, options) in field_defs:
                 logger.debug("Creating field %s(%r)", kind, options)
                 fields.append(self.field_registry.create(kind, **options))
 
+            # Add the list of Field objects to the 'fields per line'.
             self.line_fields.append(fields)
+
+            # Pre-fill the list of widgets
             for field in fields:
                 self.widgets[field] = None
 
-    def compute_positions(self, screen_width, line):
+    @classmethod
+    def compute_positions(cls, screen_width, line):
+        """Compute the relative position of the fields on a given line.
+
+        Args:
+            screen_width (int): the width of the screen
+            line (mpdlcd.display_fields.Field list): the list of fields on the
+                line
+
+        Returns:
+            ((int, mpdlcd.display_fields.Field) list): the positions of fields,
+                as (position, field) tuples.
+
+        Raises:
+            FormatError: if the line contains more than one flexible field, or
+                is too long for the screen size.
+        """
+        # First index
         left = 1
+        # Last index
         right = screen_width + 1
+        # Current 'flexible' field
         flexible = None
 
+        # Compute the space to the left and to the right of the (optional)
+        # flexible field.
         for field in line:
             if field.is_flexible():
                 if flexible:
@@ -54,6 +94,7 @@ class ScreenPattern(object):
                 # Met a 'flexible', computing from the right
                 right -= field.width
 
+        # Available space for the 'flexible' field
         available = right - left
         if available <= 0:
             raise FormatError("Too much data for screen width")
@@ -76,6 +117,14 @@ class ScreenPattern(object):
         return positions
 
     def add_to_screen(self, screen_width, screen):
+        """Add the pattern to a screen.
+
+        Also fills self.widgets.
+
+        Args:
+            screen_width (int): the width of the screen
+            screen (lcdprod.Screen): the screen to fill.
+        """
         for lineno, fields in enumerate(self.line_fields):
             for left, field in self.compute_positions(screen_width, fields):
                 logger.debug("Adding field %s to screen %s at x=%d->%d, y=%d",
@@ -85,14 +134,17 @@ class ScreenPattern(object):
                     left, 1 + lineno)
 
     def time_changed(self, elapsed, total):
+        """Called whenever the elapsed/total time of MPD changed."""
         for field, widget in self.widgets.iteritems():
             field.time_changed(widget, elapsed, total)
 
     def state_changed(self, new_state):
+        """Called whenever the state of MPD changed."""
         for field, widget in self.widgets.iteritems():
             field.state_changed(widget, new_state)
 
     def song_changed(self, new_song):
+        """Called whenever the current song changed."""
         for field, widget in self.widgets.iteritems():
             field.song_changed(widget, new_song)
 
@@ -124,6 +176,21 @@ class ScreenPattern(object):
         IN_FIELD_OPTION_VALUE = 3
 
         class ParserState(object):
+            """Holds the current state of the parser.
+
+            Attributes:
+                quote (str): the current quote character, or None
+                escaping (bool): whether the next character should be escaped
+                block (char list): the content of the current 'block'
+                kind (str): the kind of the current field, or ''
+                option_name (str): the name of the current option, or ''
+                options (dict(str => str)): maps option name to option value for
+                    the current field
+                state (int): state of the parser,one of OUT_FIELD/IN_FIELD_*
+                fields ((str, dict(str => str)) list): list of fields, as
+                    (kind, options) tuples.
+            """
+
             def __init__(self, logger=None):
                 self.quote = None
                 self.escaping = False
@@ -138,22 +205,27 @@ class ScreenPattern(object):
                 self.logger = logger
 
             def _reset(self):
+                """Reset buffered state (quote/escape/block)."""
                 self.quote = None
                 self.escaping = False
                 self.block = []
 
             def _register_field(self, kind, options):
+                """Register a completed field."""
                 self.fields.append((kind, dict(options)))
 
             def debug(self, msg, *args, **kwargs):
+                """Print a debug message."""
                 self.logger.debug(msg, *args, **kwargs)
 
             def save_fixed_text(self):
+                """Register a completed, fixed text, field."""
                 assert self.state == OUT_FIELD
                 self._register_field(FIXED_TEXT_FIELD,
                     {'text': ''.join(self.block)})
 
             def enter_field(self):
+                """Enter a new field."""
                 self.debug('Entering new field')
                 self.state = IN_FIELD_KIND
                 self.kind = ''
@@ -162,12 +234,14 @@ class ScreenPattern(object):
                 self._reset()
 
             def leave_kind(self):
+                """Leave the field kind."""
                 self.state = IN_FIELD_OPTION_NAME
                 self.kind = ''.join(self.block)
                 self.debug("Got widget kind '%s'", self.kind)
                 self._reset()
 
             def leave_option_name(self):
+                """Leave an option name."""
                 self.state = IN_FIELD_OPTION_VALUE
                 self.option_name = ''.join(self.block)
                 self.debug("Got option name '%s' for '%s'",
@@ -175,6 +249,7 @@ class ScreenPattern(object):
                 self._reset()
 
             def leave_option_value(self):
+                """Leave an option value."""
                 self.state = IN_FIELD_OPTION_NAME
                 option_value = ''.join(self.block)
                 self.options[self.option_name] = option_value
@@ -183,6 +258,7 @@ class ScreenPattern(object):
                 self._reset()
 
             def leave_field(self):
+                """Leave a field definition."""
                 self.state = OUT_FIELD
                 self._register_field(self.kind, self.options)
                 self.debug("Got widget '%s(%s)'", self.kind,
@@ -192,6 +268,8 @@ class ScreenPattern(object):
         st = ParserState()
 
         for pos, char in enumerate(line):
+
+            # Escaping
             if st.escaping:
                 st.escaping = False
                 st.block.append(char)
@@ -199,6 +277,7 @@ class ScreenPattern(object):
             elif char == '\\':
                 st.escaping = True
 
+            # Quoting
             elif char in ['"', "'"]:
                 if st.state == IN_FIELD_OPTION_VALUE:
                     if st.quote:  # Already in a quoted block
@@ -222,6 +301,7 @@ class ScreenPattern(object):
                     raise FormatError("Unexpected '%s' at %d in %s" %
                         (char, pos, line))
 
+            # Entering a field
             elif char == '{':
                 if st.state == OUT_FIELD:
                     if st.block:
@@ -234,6 +314,7 @@ class ScreenPattern(object):
                 else:
                     raise FormatError("Unexpected '{' at %d in %s" % (pos, line))
 
+            # Leaving a field
             elif char == '}':
                 if st.state == IN_FIELD_KIND:
                     st.leave_kind()
@@ -253,6 +334,7 @@ class ScreenPattern(object):
                 elif st.state == OUT_FIELD:
                     raise FormatError("Unexpected '}' at %d in %s" % (pos, line))
 
+            # Between kind and option name
             elif char == ' ':
                 if st.state == IN_FIELD_KIND:
                     if not st.block:
@@ -270,6 +352,7 @@ class ScreenPattern(object):
                 else:
                     raise FormatError("Unexpected ' ' at %d in %s" % (pos, line))
 
+            # Between options
             elif char == ',':
                 if st.state == IN_FIELD_OPTION_NAME:
                     if st.block:
@@ -297,6 +380,7 @@ class ScreenPattern(object):
                 else:  # OUT_FIELD
                     st.block.append(char)
 
+            # Between option name and option value
             elif char == '=':
                 if st.state == IN_FIELD_OPTION_NAME:
                     if st.block:
@@ -325,9 +409,11 @@ class ScreenPattern(object):
                 else:
                     raise FormatError("Unexpected '=' at %d in %s" % (pos, line))
 
+            # Everything else
             else:
                 st.block.append(char)
 
+        # All input parsed
         if st.state != OUT_FIELD:
             raise FormatError("Unclosed field at %d in '%s'; block: '%s'"
                 % (pos, line, ''.join(st.block)))
