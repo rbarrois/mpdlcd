@@ -53,7 +53,24 @@ DEFAULT_SYSLOG_ADDRESS = '/dev/log'
 DEFAULT_LOGFILE = '-'  # For stdout
 
 
+logger = logging.getLogger('mpdlcdd')
+
+
 def _make_hostport(conn, default_host, default_port):
+    """Convert a 'host:port' string to a (host, port) tuple.
+
+    If the given connection is empty, use defaults.
+    If no port is given, use the default.
+
+    Args:
+        conn (str): the string describing the target hsot/port
+        default_host (str): the host to use if ``conn`` is empty
+        default_port (int): the port to use if not given in ``conn``.
+
+    Returns:
+        (str, int): a (host, port) tuple.
+    """
+
     if not conn:
         return default_host, default_port
 
@@ -67,14 +84,26 @@ def _make_hostport(conn, default_host, default_port):
     return host, int(port)
 
 
-logger = logging.getLogger('mpdlcdd')
-
-
 def _make_lcdproc(lcd_host, lcd_port, lcdd_debug=False,
         retry_attempts=DEFAULT_RETRY_ATTEMPTS, retry_wait=DEFAULT_RETRY_WAIT,
         retry_backoff=DEFAULT_RETRY_BACKOFF):
+    """Create and connect to the LCDd server.
+
+    Args:
+        lcd_host (str): the hostname to connect to
+        lcd_prot (int): the port to connect to
+        lcdd_debug (bool): whether to enable full LCDd debug
+        retry_attempts (int): the number of connection attempts
+        retry_wait (int): the time to wait between connection attempts
+        retry_backoff (int): the backoff for increasing inter-attempt delay
+
+    Returns:
+        lcdproc.server.Server
+    """
 
     class ServerSpawner(utils.AutoRetryCandidate):
+        """Spawn the server, using auto-retry."""
+
         @utils.auto_retry
         def connect(self):
             return lcdproc_server.Server(lcd_host, lcd_port, debug=lcdd_debug)
@@ -94,12 +123,30 @@ def _make_lcdproc(lcd_host, lcd_port, lcdd_debug=False,
 
 
 def _make_pattern(pattern_txt):
+    """Create a ScreenPattern from a given pattern text.
+
+    Args:
+        pattern_txt (str list): the pattern, as a list of lines
+
+    Returns:
+        mpdlcd.display_pattern.ScreenPattern: the ScreenPattern wrapping the
+            given lines.
+    """
     registry = display_fields.FieldRegistry()
     return display_pattern.ScreenPattern(pattern_txt, registry)
 
 
 def run_forever(lcdproc='', mpd='', lcdd_debug=False, retries=DEFAULT_RETRIES,
         retry_wait=DEFAULT_RETRY_WAIT):
+    """Run the server.
+
+    Args:
+        lcdproc (str): the target connection (host:port) for lcdproc
+        mpd (str): the target connection (host:port) for mpd
+        lcdd_debug (bool): whether to enable full LCDd debug
+        retries (int): number of connection attempts
+        retry_wait (int): tyme between connection attempts
+    """
     lcd_host, lcd_port = _make_hostport(lcdproc, 'localhost', 13666)
     mpd_host, mpd_port = _make_hostport(mpd, 'localhost', 6600)
 
