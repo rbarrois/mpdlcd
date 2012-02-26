@@ -479,12 +479,12 @@ class ScreenPatternList(object):
             ScreenPattern: the best pattern available for that size
         """
         if size in self.patterns:
-            return self.patterns[size]
+            return ScreenPattern(self.patterns[size], self.field_registry)
         for shorter in xrange(size, 0, -1):
             if shorter in self.min_patterns:
                 pattern = self.min_patterns[shorter]
 
                 # Try to vertically center the pattern
                 prefix = [''] * (size - shorter / 2)
-                return prefix + pattern
+                return ScreenPattern(prefix + pattern, self.field_registry)
         return ScreenPattern([], self.field_registry)
