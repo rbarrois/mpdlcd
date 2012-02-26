@@ -13,7 +13,6 @@ from mpdlcd import utils
 logger = logging.getLogger(__name__)
 
 
-LCD_SCREEN_NAME = 'MPD'
 class MpdRunner(utils.AutoRetryCandidate):
     def __init__(self, client, lcd, lcdproc_screen, *args, **kwargs):
         super(MpdRunner, self).__init__(logger=logger, *args, **kwargs)
@@ -24,7 +23,7 @@ class MpdRunner(utils.AutoRetryCandidate):
         # Make sure we can connect - no need to go further otherwise.
         self._connect_lcd()
         self.pattern = None
-        self.screen = self.setup_screen(LCD_SCREEN_NAME)
+        self.screen = self.setup_screen(self.lcdproc_screen)
         self.client = client
         self._previous = {
             'song': None,
@@ -53,8 +52,8 @@ class MpdRunner(utils.AutoRetryCandidate):
         logger.info('%s screen added to lcdproc.', screen_name)
         return screen
 
-    def setup_pattern(self, pattern):
-        self.pattern = pattern
+    def setup_pattern(self, patterns):
+        self.pattern = patterns[self.screen.height]
         self.pattern.parse()
         self.pattern.add_to_screen(self.screen.width, self.screen)
 
@@ -80,8 +79,8 @@ class MpdRunner(utils.AutoRetryCandidate):
             self.pattern.state_changed(state)
 
     def quit(self):
-        logger.info('Exiting: removing screen %s', LCD_SCREEN_NAME)
-        self.lcd.del_screen(LCD_SCREEN_NAME)
+        logger.info('Exiting: removing screen %s', self.lcdproc_screen)
+        self.lcd.del_screen(self.lcdproc_screen)
 
     def run(self):
         logger.info('Starting update loop.')
