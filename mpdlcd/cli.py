@@ -13,14 +13,18 @@ from mpdlcd import lcdrunner
 from mpdlcd import mpdwrapper
 from mpdlcd import display_fields
 from mpdlcd import display_pattern
+from mpdlcd import utils
 
+# Display
 DEFAULT_REFRESH = 0.5
 
 DEFAULT_MPD_PORT = 6600
 DEFAULT_LCD_PORT = 13666
-DEFAULT_RETRIES = 3
+DEFAULT_RETRY_ATTEMPTS = 3
 DEFAULT_RETRY_WAIT = 3
+DEFAULT_RETRY_BACKOFF = 2
 
+# Logging
 DEFAULT_LOGLEVEL = 'warning'
 DEFAULT_SYSLOG_FACILITY = 'daemon'
 DEFAULT_SYSLOG_ADDRESS = '/dev/log'
@@ -40,20 +44,31 @@ def _make_hostport(conn, default_host, default_port):
 
     return host, int(port)
 
+
 logger = logging.getLogger('mpdlcdd')
 
-def _make_lcdproc(lcd_host, lcd_port, lcdd_debug=False, retries=DEFAULT_RETRIES,
-        retry_wait=DEFAULT_RETRY_WAIT):
-    for _ in xrange(retries):
-        try:
+
+def _make_lcdproc(lcd_host, lcd_port, lcdd_debug=False,
+        retry_attempts=DEFAULT_RETRY_ATTEMPTS, retry_wait=DEFAULT_RETRY_WAIT,
+        retry_backoff=DEFAULT_RETRY_BACKOFF):
+
+    class ServerSpawner(utils.AutoRetryCandidate):
+        @utils.auto_retry
+        def connect(self):
             return lcdproc_server.Server(lcd_host, lcd_port, debug=lcdd_debug)
-        except socket.error as e:
-            logger.warning('Unable to connect to lcdproc server %s:%s: %s',
-                lcd_host, lcd_port, e)
-            time.sleep(retry_wait)
-    logger.error('Unable to connect to lcdproc %s:%s after %d attempts.',
-        lcd_host, lcd_port, retries)
-    raise SystemExit(1)
+
+    spawner = ServerSpawner(
+        retry_attempts=retry_attempts,
+        retry_wait=retry_wait,
+        retry_backoff=retry_backoff,
+        logger=logger)
+
+    try:
+        return spwaner.connect()
+    except socket.error as e:
+        logger.error('Unable to connect to lcdproc %s:%s after %d attempts.',
+            lcd_host, lcd_port, retries)
+        raise SystemExit(1)
 
 
 def _make_pattern(pattern_txt):
@@ -109,6 +124,10 @@ def _make_parser():
             help='Refresh the display every REFRESH seconds (default: %.1fs)' %
                     DEFAULT_REFRESH,
             metavar='REFRESH', default=DEFAULT_REFRESH)
+    group.add_option('--lcdproc-screen', dest='lcdproc_screen',
+            help='Register the SCREEN_NAME lcdproc screen for mpd status '
+            '(default: %s)' % DEFAULT_LCD_SCREEN_NAME,
+            metavar='SCREEN_NAME', default=DEFAULT_LCD_SCREEN_NAME)
     parser.add_option_group(group)
 
     # Connection options
