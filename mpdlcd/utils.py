@@ -6,19 +6,16 @@ import logging
 import time
 
 
-class AutoRetryCandidate(object):
-    """Base class for objects wishing to use the @auto_retry decorator.
+class AutoRetryConfig(object):
+    """Hold the auto-retry configuration.
 
     Attributes:
-        _retry_logger (logging.Logger): where to log connection failures
         retry_attempts (int): Maximum number of connection retries
         retry_wait (int): The initial time to wait between retries
         retry_backoff (int): Amount by which wait time should be multiplied
             after each failure
     """
-
-    def __init__(self, retry_backoff, retry_wait, retry_attempts, logger=None,
-            *args, **kwargs):
+    def __init__(self, retry_attempts, retry_wait, retry_backoff):
         if retry_backoff <= 1:
             raise ValueError('retry_backoff should be greater than 1.')
         self.retry_backoff = retry_backoff
@@ -31,10 +28,21 @@ class AutoRetryCandidate(object):
             raise ValueError('retry_attempts should be positive or zero')
         self.retry_attempts = retry_attempts
 
+
+class AutoRetryCandidate(object):
+    """Base class for objects wishing to use the @auto_retry decorator.
+
+    Attributes:
+        _retry_config (AutoRetryConfig): auto-retry configuration
+        _retry_logger (logging.Logger): where to log connection failures
+    """
+
+    def __init__(self, retry_config, logger=None, *args, **kwargs):
+        self._retry_config = retry_config
+
         if not logger:
             logger=logging.getLogger(self.__class__.__module__)
         self._retry_logger = logger
-
         super(AutoRetryCandidate, self).__init__(*args, **kwargs)
 
 
@@ -44,9 +52,10 @@ def auto_retry(fun):
     @functools.wraps(fun)
     def decorated(instance, *args, **kwargs):
         """Wrapper around a decorated function."""
-        remaining_tries = instance.retry_attempts
-        current_wait = instance.retry_wait
-        retry_backoff = instance.retry_backoff
+        cfg = instance._retry_config
+        remaining_tries = cfg.retry_attempts
+        current_wait = cfg.retry_wait
+        retry_backoff = cfg.retry_backoff
         last_error = None
 
         while remaining_tries >= 0:

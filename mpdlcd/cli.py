@@ -84,9 +84,7 @@ def _make_hostport(conn, default_host, default_port):
     return host, int(port)
 
 
-def _make_lcdproc(lcd_host, lcd_port, lcdd_debug=False,
-        retry_attempts=DEFAULT_RETRY_ATTEMPTS, retry_wait=DEFAULT_RETRY_WAIT,
-        retry_backoff=DEFAULT_RETRY_BACKOFF):
+def _make_lcdproc(lcd_host, lcd_port, lcdd_debug=False, retry_config):
     """Create and connect to the LCDd server.
 
     Args:
@@ -108,17 +106,13 @@ def _make_lcdproc(lcd_host, lcd_port, lcdd_debug=False,
         def connect(self):
             return lcdproc_server.Server(lcd_host, lcd_port, debug=lcdd_debug)
 
-    spawner = ServerSpawner(
-        retry_attempts=retry_attempts,
-        retry_wait=retry_wait,
-        retry_backoff=retry_backoff,
-        logger=logger)
+    spawner = ServerSpawner(retry_config=retry_config, logger=logger)
 
     try:
         return spwaner.connect()
     except socket.error as e:
-        logger.error('Unable to connect to lcdproc %s:%s after %d attempts.',
-            lcd_host, lcd_port, retries)
+        logger.error('Unable to connect to lcdproc %s:%s.',
+            lcd_host, lcd_port)
         raise SystemExit(1)
 
 
@@ -152,18 +146,20 @@ def run_forever(lcdproc='', mpd='', lcdd_debug=False,
     """
     lcd_host, lcd_port = _make_hostport(lcdproc, 'localhost', 13666)
     mpd_host, mpd_port = _make_hostport(mpd, 'localhost', 6600)
+    retry_config = utils.AutoRetryConfig(
+        retry_attempts=retry_attempts,
+        retry_backoff=retry_backoff,
+        retry_wait=retry_wait)
 
     # Setup MPD client
-    client = mpdwrapper.MPDClient(mpd_host, mpd_port
-        retry_attempts, retry_wait, retry_backoff)
+    client = mpdwrapper.MPDClient(mpd_host, mpd_port, retry_config=retry_config)
 
     # Setup LCDd client
     lcd = _make_lcdproc(lcd_host, lcd_port, lcdd_debug,
-        retry_attempts, retry_wait, retry_backoff)
+        retry_config=retry_config)
 
     # Setup connector
-    runner = lcdrunner.MpdRunner(client, lcd,
-        retry_attempts, retry_wait, retry_backoff)
+    runner = lcdrunner.MpdRunner(client, lcd, retry_config=retry_config)
 
     patterns = {
         2: [
@@ -194,6 +190,7 @@ def _make_parser():
     parser = optparse.OptionParser()
 
     # Display options
+    # ---------------
     group = optparse.OptionGroup(parser, 'Display')
     group.add_option('--pattern', dest='pattern',
             help='Use this PATTERN (lines separated by \\n)',
@@ -210,9 +207,12 @@ def _make_parser():
             help='Register the SCREEN_NAME lcdproc screen for mpd status '
             '(default: %s)' % DEFAULT_LCD_SCREEN_NAME,
             metavar='SCREEN_NAME', default=DEFAULT_LCD_SCREEN_NAME)
+
+    # End display options
     parser.add_option_group(group)
 
     # Connection options
+    # ------------------
     group = optparse.OptionGroup(parser, 'Connection')
     group.add_option('-l', '--lcdproc', dest='lcdproc',
             help='Connect to lcdproc at LCDPROC', metavar='LCDPROC')
@@ -220,17 +220,26 @@ def _make_parser():
             help='Connect to mpd running at MPD', metavar='MPD')
     group.add_option('--lcdd-debug', dest='lcdd_debug', action='store_true',
             help='Add full debug output of LCDd commands', default=False)
-    group.add_option('-r', '--retries', dest='retries', type='int',
-            help='Retry connections RETRY times (default: %d)' %
-                    DEFAULT_RETRIES,
-            metavar='RETRY', default=DEFAULT_RETRIES)
-    group.add_option('-w', '--retry-wait', dest='retry_wait', type='float',
+
+    # Auto-retry
+    group.add_option('--retry-attempts', dest='retry_attempts', type='int',
+            help='Retry connections RETRY_ATTEMPTS times (default: %d)' %
+                    DEFAULT_RETRY_ATTEMPTS,
+            metavar='RETRY_ATTEMPTS', default=DEFAULT_RETRY_ATTEMPTS)
+    group.add_option('--retry-wait', dest='retry_wait', type='float',
             help='Wait RETRY_WAIT between connection attempts (default: %.1fs)' %
                     DEFAULT_RETRY_WAIT,
             metavar='RETRY_WAIT', default=DEFAULT_RETRY_WAIT)
+    group.add_option('--retry-backoff', dest='retry_backoff', type='int',
+            help='Increase RETRY_WAIT by a RETRY_BACKOFF factor after each '
+                'failure (default: %d)' % DEFAULT_RETRY_BACKOFF,
+            metaver='RETRY_BACKOFF', default=DEFAULT_RETRY_BACKOFF)
+
+    # End connection options
     parser.add_option_group(group)
 
     # Logging options
+    # ---------------
     group = optparse.OptionGroup(parser, 'Logging')
     group.add_option('-s', '--syslog', dest='syslog', action='store_true',
             help='Enable syslog logging (default: False)', default=False)
@@ -259,6 +268,7 @@ def _make_parser():
             help="Log debug output from the MODULES components",
             metavar='MODULES')
 
+    # End logging options
     parser.add_option_group(group)
 
     return parser
@@ -312,7 +322,8 @@ def main(argv):
     parser = _make_parser()
     options, args = parser.parse_args(argv)
     _setup_logging(**_extract_options(options,
-        'syslog', 'syslog_facility', 'syslog_server', 'logfile', 'loglevel',
-        'debug'))
+        'syslog', 'syslog_facility', 'syslog_server',
+        'logfile', 'loglevel', 'debug'))
     run_forever(**_extract_options(options,
-        'lcdproc', 'mpd', 'lcdd_debug', 'retries', 'retry_wait'))
+        'lcdproc', 'mpd', 'lcdd_debug',
+        'retry_attempts', 'retry_backoff', 'retry_wait'))
