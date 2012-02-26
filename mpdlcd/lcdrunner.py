@@ -7,15 +7,22 @@ import time
 
 from lcdproc import server
 
+from mpdlcd import utils
+
+
 logger = logging.getLogger(__name__)
 
 
 LCD_SCREEN_NAME = 'MPD'
+class MpdRunner(utils.AutoRetryCandidate):
+    def __init__(self, client, lcd, lcdproc_screen, *args, **kwargs):
+        super(MpdRunner, self).__init__(logger=logger, *args, **kwargs)
 
-class MpdRunner(object):
-    def __init__(self, client, lcd):
         self.lcd = lcd
-        self.lcd.start_session()
+        self.lcdproc_screen = lcdproc_screen
+
+        # Make sure we can connect - no need to go further otherwise.
+        self._connect_lcd()
         self.pattern = None
         self.screen = self.setup_screen(LCD_SCREEN_NAME)
         self.client = client
@@ -24,6 +31,11 @@ class MpdRunner(object):
             'elapsed_and_total': None,
             'state': None,
         }
+
+
+    @utils.auto_retry
+    def _connect_lcd(self):
+        self.lcd.start_session()
 
     def setup_screen(self, screen_name):
         logger.debug('Adding lcdproc screen %s', screen_name)
@@ -46,6 +58,7 @@ class MpdRunner(object):
         self.pattern.parse()
         self.pattern.add_to_screen(self.screen.width, self.screen)
 
+    @utils.auto_retry
     def update(self):
         current_song = self.client.current_song
         if current_song.id != self._previous['song']:
