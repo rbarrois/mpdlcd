@@ -116,21 +116,24 @@ def _make_lcdproc(lcd_host, lcd_port, lcdd_debug=False, retry_config):
         raise SystemExit(1)
 
 
-def _make_pattern(pattern_txt):
-    """Create a ScreenPattern from a given pattern text.
+def _make_patterns(patterns):
+    """Create a ScreenPatternList from a given pattern text.
 
     Args:
-        pattern_txt (str list): the pattern, as a list of lines
+        pattern_txt (str list): the patterns
 
     Returns:
-        mpdlcd.display_pattern.ScreenPattern: the ScreenPattern wrapping the
-            given lines.
+        mpdlcd.display_pattern.ScreenPatternList: a list of patterns from the
+            given entries.
     """
     registry = display_fields.FieldRegistry()
-    return display_pattern.ScreenPattern(pattern_txt, registry)
+    pattern_list = display_pattern.ScreenPatternList(registry)
+    for pattern in patterns:
+        pattern_list.add(pattern.split('\n'))
+    return pattern_list
 
 
-def run_forever(lcdproc='', mpd='', lcdd_debug=False,
+def run_forever(lcdproc='', mpd='', lcdd_debug=False, pattern='', patterns=[],
         retry_attempts=DEFAULT_RETRY_ATTEMPTS,
         retry_wait=DEFAULT_RETRY_WAIT,
         retry_backoff=DEFAULT_RETRY_BACKOFF):
@@ -144,22 +147,27 @@ def run_forever(lcdproc='', mpd='', lcdd_debug=False,
         retry_wait (int): time between connection attempts
         retry_backoff (int): increase to between-attempts delay
     """
+    # Compute host/ports
     lcd_host, lcd_port = _make_hostport(lcdproc, 'localhost', 13666)
     mpd_host, mpd_port = _make_hostport(mpd, 'localhost', 6600)
+
+    # Prepare auto-retry
     retry_config = utils.AutoRetryConfig(
         retry_attempts=retry_attempts,
         retry_backoff=retry_backoff,
         retry_wait=retry_wait)
 
     # Setup MPD client
-    client = mpdwrapper.MPDClient(mpd_host, mpd_port, retry_config=retry_config)
+    mpd_client = mpdwrapper.MPDClient(mpd_host, mpd_port,
+        retry_config=retry_config)
 
     # Setup LCDd client
     lcd = _make_lcdproc(lcd_host, lcd_port, lcdd_debug,
         retry_config=retry_config)
 
     # Setup connector
-    runner = lcdrunner.MpdRunner(client, lcd, retry_config=retry_config)
+    runner = lcdrunner.MpdRunner(mpd_client, lcd,
+        retry_config=retry_config)
 
     patterns = {
         2: [
@@ -169,11 +177,18 @@ def run_forever(lcdproc='', mpd='', lcdd_debug=False,
     }
 
     # Fill pattern
-    pattern = _make_pattern(patterns[runner.screen.height])
-    runner.setup_pattern(pattern)
+    if pattern:
+        # If a specific pattern was given, use it
+        patterns = [pattern]
+    elif not patterns:
+        # If no patterns were given, use the defaults
+        patterns = DEFAULT_PATTERNS
+    pattern_list = _make_patterns(patterns)
+
+    runner.setup_pattern(pattern_list[runner.screen.height])
 
     # Launch
-    client.connect()
+    mpd_client.connect()
     runner.run()
 
 
@@ -246,7 +261,7 @@ def _make_parser():
 
     group.add_option('--syslog-facility', dest='syslog_facility',
             default=DEFAULT_SYSLOG_FACILITY,
-            help='Log into syslog facility FACILITY (default: %s)' % 
+            help='Log into syslog facility FACILITY (default: %s)' %
                     DEFAULT_SYSLOG_FACILITY,
             metavar='FACILITY')
 
@@ -325,5 +340,5 @@ def main(argv):
         'syslog', 'syslog_facility', 'syslog_server',
         'logfile', 'loglevel', 'debug'))
     run_forever(**_extract_options(options,
-        'lcdproc', 'mpd', 'lcdd_debug',
+        'lcdproc', 'mpd', 'lcdd_debug', 'pattern', 'patterns',
         'retry_attempts', 'retry_backoff', 'retry_wait'))
