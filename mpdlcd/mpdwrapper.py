@@ -7,6 +7,9 @@ import time
 import socket
 
 
+from mpdlcd import utils
+
+
 logger = logging.getLogger(__name__)
 
 STATE_PLAY = 'play'
@@ -21,15 +24,17 @@ class MPDConnectionError(MPDError):
     pass
 
 
-class MPDClient(object):
+class MPDClient(AutoRetryCandidate):
 
-    def __init__(self, host='localhost', port='6600'):
+    def __init__(self, host='localhost', port='6600', *args, **kwargs):
+        super(MPDClient, self).__init__(*args, **kwargs)
         self._client = mpd.MPDClient()
         self._connected = False
         self.host = host
         self.port = port
 
-    def connect(self, retries=3, wait=3):
+    @utils.auto_retry
+    def connect(self):
         if not self._connected:
             logger.info('Connecting to MPD server at %s:%s', self.host, self.port)
             for _ in xrange(retries):
@@ -48,6 +53,7 @@ class MPDClient(object):
                     (self.host, self.port))
 
     @property
+    @utils.auto_retry
     def status(self):
         return self._client.status()
 
@@ -95,6 +101,7 @@ class MPDClient(object):
         return self.status['state']
 
     @property
+    @utils.auto_retry
     def current_song(self):
         logger.debug('Fetching MPD song information')
         return MPDSong(**self._client.currentsong())

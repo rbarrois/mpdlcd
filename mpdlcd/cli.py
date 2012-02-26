@@ -136,23 +136,34 @@ def _make_pattern(pattern_txt):
     return display_pattern.ScreenPattern(pattern_txt, registry)
 
 
-def run_forever(lcdproc='', mpd='', lcdd_debug=False, retries=DEFAULT_RETRIES,
-        retry_wait=DEFAULT_RETRY_WAIT):
+def run_forever(lcdproc='', mpd='', lcdd_debug=False,
+        retry_attempts=DEFAULT_RETRY_ATTEMPTS,
+        retry_wait=DEFAULT_RETRY_WAIT,
+        retry_backoff=DEFAULT_RETRY_BACKOFF):
     """Run the server.
 
     Args:
         lcdproc (str): the target connection (host:port) for lcdproc
         mpd (str): the target connection (host:port) for mpd
         lcdd_debug (bool): whether to enable full LCDd debug
-        retries (int): number of connection attempts
-        retry_wait (int): tyme between connection attempts
+        retry_attempts (int): number of connection attempts
+        retry_wait (int): time between connection attempts
+        retry_backoff (int): increase to between-attempts delay
     """
     lcd_host, lcd_port = _make_hostport(lcdproc, 'localhost', 13666)
     mpd_host, mpd_port = _make_hostport(mpd, 'localhost', 6600)
 
-    lcd = _make_lcdproc(lcd_host, lcd_port, lcdd_debug, retries, retry_wait)
-    client = mpdwrapper.MPDClient(mpd_host, mpd_port)
-    runner = lcdrunner.MpdRunner(client, lcd)
+    # Setup MPD client
+    client = mpdwrapper.MPDClient(mpd_host, mpd_port
+        retry_attempts, retry_wait, retry_backoff)
+
+    # Setup LCDd client
+    lcd = _make_lcdproc(lcd_host, lcd_port, lcdd_debug,
+        retry_attempts, retry_wait, retry_backoff)
+
+    # Setup connector
+    runner = lcdrunner.MpdRunner(client, lcd,
+        retry_attempts, retry_wait, retry_backoff)
 
     patterns = {
         2: [
@@ -161,9 +172,11 @@ def run_forever(lcdproc='', mpd='', lcdd_debug=False, retries=DEFAULT_RETRIES,
         ],
     }
 
+    # Fill pattern
     pattern = _make_pattern(patterns[runner.screen.height])
     runner.setup_pattern(pattern)
 
+    # Launch
     client.connect()
     runner.run()
 
