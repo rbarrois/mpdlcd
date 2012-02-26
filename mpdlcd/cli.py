@@ -17,7 +17,29 @@ from mpdlcd import utils
 
 # Display
 DEFAULT_REFRESH = 0.5
+DEFAULT_LCD_SCREEN_NAME = 'MPD'
+DEFAULT_PATTERNS = [
+    # One line
+    """{state} {song format="%(artist)s - %(title)s"} {elapsed}""",
 
+    # Two lines
+    """{song format="%(artist)s",speed=4} {elapsed}\n"""
+    """{song format="%(title)s",speed=2} {state}""",
+
+    # Three lines
+    """{song format="%(artist)s",speed=4}\n"""
+    """{song format="%(album)s - %(title)s",speed=2}\n"""
+    """{state}  {elapsed} / {total}""",
+
+    # Four lines
+    """{song format="%(artist)s",speed=4}\n"""
+    """{song format="%(album)s",speed=4}\n"""
+    """{song format="%(title)s",speed=2}\n"""
+    """{elapsed}  {state}  {remaining}""",
+]
+
+
+# Connections
 DEFAULT_MPD_PORT = 6600
 DEFAULT_LCD_PORT = 13666
 DEFAULT_RETRY_ATTEMPTS = 3
