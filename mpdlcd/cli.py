@@ -1,8 +1,10 @@
+#! /usr/bin/env python
 # -*- coding: utf-8 -*-
 # Copyright (c) 2011-2012 Raphaël Barrois
 
 from lcdproc import server as lcdproc_server
 
+import ConfigParser
 import logging
 from logging import handlers as logging_handlers
 import optparse
@@ -15,9 +17,53 @@ from mpdlcd import display_fields
 from mpdlcd import display_pattern
 from mpdlcd import utils
 
+# General
+DEFAULT_CONFIG_FILE = '/etc/mpdlcd.conf'
+
 # Display
 DEFAULT_REFRESH = 0.5
 DEFAULT_LCD_SCREEN_NAME = 'MPD'
+DEFAULT_PATTERN = ''
+
+# Connection
+DEFAULT_MPD_PORT = 6600
+DEFAULT_LCD_PORT = 13666
+DEFAULT_RETRY_ATTEMPTS = 3
+DEFAULT_RETRY_WAIT = 3
+DEFAULT_RETRY_BACKOFF = 2
+
+# Logging
+DEFAULT_SYSLOG_ENABLED = False
+DEFAULT_LOGLEVEL = 'warning'
+DEFAULT_SYSLOG_FACILITY = 'daemon'
+DEFAULT_SYSLOG_ADDRESS = '/dev/log'
+DEFAULT_LOGFILE = '-'
+DEFAULT_DEBUG_MODULES = ''
+
+BASE_CONFIG = {
+    'display': {
+        'refresh': ('float', DEFAULT_REFRESH),
+        'lcd_screen_name': ('str', DEFAULT_LCD_SCREEN_NAME),
+        'pattern': ('str', DEFAULT_PATTERN),
+    },
+    'connections': {
+        'mpd': ('str', 'localhost:%s' % DEFAULT_MPD_PORT),
+        'lcdproc': ('str', 'localhost:%s' % DEFAULT_LCD_PORT),
+        'lcddebug': ('bool', False),
+        'retry_attempts': ('int', DEFAULT_RETRY_ATTEMPTS),
+        'retry_wait': ('int', DEFAULT_RETRY_WAIT),
+        'retry_backoff': ('int', DEFAULT_RETRY_BACKOFF),
+    },
+    'logging': {
+        'syslog': ('bool', DEFAULT_SYSLOG_ENABLED),
+        'loglevel': ('str', DEFAULT_LOGLEVEL),
+        'syslog_facility': ('str', DEFAULT_SYSLOG_FACILITY),
+        'syslog_address': ('str', DEFAULT_SYSLOG_ADDRESS),
+        'logfile': ('str', DEFAULT_CONFIG_FILE),
+        'debug': ('str', DEFAULT_DEBUG_MODULES),
+    },
+}
+
 DEFAULT_PATTERNS = [
     # One line
     """{state} {song format="%(artist)s - %(title)s"} {elapsed}""",
@@ -37,20 +83,6 @@ DEFAULT_PATTERNS = [
     """{song format="%(title)s",speed=2}\n"""
     """{elapsed}  {state}  {remaining}""",
 ]
-
-
-# Connections
-DEFAULT_MPD_PORT = 6600
-DEFAULT_LCD_PORT = 13666
-DEFAULT_RETRY_ATTEMPTS = 3
-DEFAULT_RETRY_WAIT = 3
-DEFAULT_RETRY_BACKOFF = 2
-
-# Logging
-DEFAULT_LOGLEVEL = 'warning'
-DEFAULT_SYSLOG_FACILITY = 'daemon'
-DEFAULT_SYSLOG_ADDRESS = '/dev/log'
-DEFAULT_LOGFILE = '-'  # For stdout
 
 
 logger = logging.getLogger('mpdlcdd')
@@ -84,7 +116,7 @@ def _make_hostport(conn, default_host, default_port):
     return host, int(port)
 
 
-def _make_lcdproc(lcd_host, lcd_port, lcdd_debug=False, retry_config):
+def _make_lcdproc(lcd_host, lcd_port, retry_config, lcdd_debug=False):
     """Create and connect to the LCDd server.
 
     Args:
@@ -169,13 +201,6 @@ def run_forever(lcdproc='', mpd='', lcdd_debug=False, pattern='', patterns=[],
     runner = lcdrunner.MpdRunner(mpd_client, lcd,
         retry_config=retry_config)
 
-    patterns = {
-        2: [
-            """{song format="%(artist)s",speed=4} {elapsed}""",
-            """{song format="%(title)s",speed=2} {state}""",
-        ],
-    }
-
     # Fill pattern
     if pattern:
         # If a specific pattern was given, use it
@@ -204,6 +229,13 @@ LOGLEVELS = {
 def _make_parser():
     parser = optparse.OptionParser()
 
+    # General options
+    # ---------------
+    parser.add_option('-c', '--config', dest='config',
+            help='Read configuration from CONFIG (default: %s)' %
+            DEFAULT_CONFIG_FILE, metaver='CONFIG', default=DEFAULT_CONFIG_FILE)
+    # End general options
+
     # Display options
     # ---------------
     group = optparse.OptionGroup(parser, 'Display')
@@ -217,11 +249,11 @@ def _make_parser():
     group.add_option('--refresh', dest='refresh', type='float',
             help='Refresh the display every REFRESH seconds (default: %.1fs)' %
                     DEFAULT_REFRESH,
-            metavar='REFRESH', default=DEFAULT_REFRESH)
+            metavar='REFRESH')
     group.add_option('--lcdproc-screen', dest='lcdproc_screen',
             help='Register the SCREEN_NAME lcdproc screen for mpd status '
             '(default: %s)' % DEFAULT_LCD_SCREEN_NAME,
-            metavar='SCREEN_NAME', default=DEFAULT_LCD_SCREEN_NAME)
+            metavar='SCREEN_NAME')
 
     # End display options
     parser.add_option_group(group)
@@ -240,15 +272,15 @@ def _make_parser():
     group.add_option('--retry-attempts', dest='retry_attempts', type='int',
             help='Retry connections RETRY_ATTEMPTS times (default: %d)' %
                     DEFAULT_RETRY_ATTEMPTS,
-            metavar='RETRY_ATTEMPTS', default=DEFAULT_RETRY_ATTEMPTS)
+            metavar='RETRY_ATTEMPTS')
     group.add_option('--retry-wait', dest='retry_wait', type='float',
             help='Wait RETRY_WAIT between connection attempts (default: %.1fs)' %
                     DEFAULT_RETRY_WAIT,
-            metavar='RETRY_WAIT', default=DEFAULT_RETRY_WAIT)
+            metavar='RETRY_WAIT')
     group.add_option('--retry-backoff', dest='retry_backoff', type='int',
             help='Increase RETRY_WAIT by a RETRY_BACKOFF factor after each '
                 'failure (default: %d)' % DEFAULT_RETRY_BACKOFF,
-            metaver='RETRY_BACKOFF', default=DEFAULT_RETRY_BACKOFF)
+            metaver='RETRY_BACKOFF')
 
     # End connection options
     parser.add_option_group(group)
@@ -257,29 +289,26 @@ def _make_parser():
     # ---------------
     group = optparse.OptionGroup(parser, 'Logging')
     group.add_option('-s', '--syslog', dest='syslog', action='store_true',
-            help='Enable syslog logging (default: False)', default=False)
+            help='Enable syslog logging (default: False)')
 
     group.add_option('--syslog-facility', dest='syslog_facility',
-            default=DEFAULT_SYSLOG_FACILITY,
             help='Log into syslog facility FACILITY (default: %s)' %
                     DEFAULT_SYSLOG_FACILITY,
             metavar='FACILITY')
 
     group.add_option('--syslog-server', dest='syslog_server',
-            default=DEFAULT_SYSLOG_ADDRESS,
             help='Log into syslog at SERVER (default: %s)' %
                     DEFAULT_SYSLOG_ADDRESS,
             metavar='SERVER')
 
     group.add_option('-f', '--logfile', dest='logfile',
-            default=DEFAULT_LOGFILE,
             help="Log into LOGFILE ('-' for stderr)", metavar='LOGFILE')
 
     group.add_option('--loglevel', dest='loglevel', type='choice',
             help='Logging level (%s; default: %s)' %
                     ('/'.join(LOGLEVELS.keys()), DEFAULT_LOGLEVEL),
-            choices=LOGLEVELS.keys(), default=DEFAULT_LOGLEVEL)
-    group.add_option('-d', '--debug', dest='debug', default='',
+            choices=LOGLEVELS.keys())
+    group.add_option('-d', '--debug', dest='debug',
             help="Log debug output from the MODULES components",
             metavar='MODULES')
 
@@ -312,7 +341,7 @@ def _setup_logging(syslog=False, syslog_facility=DEFAULT_SYSLOG_FACILITY,
         handler.setFormatter(quiet_formatter)
 
     else:
-        handler = logging_handlers.FileHandler(logfile, level=level)
+        handler = logging.FileHandler(logfile, level=level)
         handler.setFormatter(verbose_formatter)
 
     root_logger = logging.getLogger()
@@ -324,21 +353,61 @@ def _setup_logging(syslog=False, syslog_facility=DEFAULT_SYSLOG_FACILITY,
         logging.getLogger(module).addHandler(handler)
 
 
-def _extract_options(options, *args, **kwargs):
+def _read_config(filename):
+    parser = ConfigParser.RawConfigParser()
+    if not parser.read(filename):
+        return
+
+    config = {}
+
+    for section, defaults in BASE_CONFIG.iteritems():
+        if section == 'patterns':
+            continue
+
+        for name, descr in defaults:
+            kind, default = desc
+            if section in parser.sections() and name in parser.options(section):
+                if kind == 'int':
+                    value = parser.getint(section, name)
+                elif kind == 'float':
+                    value = parser.getfloat(section, name)
+                elif kind == 'bool':
+                    value = parser.getboolean(section, name)
+                else:
+                    value = parser.get(section, name)
+            else:
+                value = default
+            config[name] = value
+
+    if 'patterns' in config.sections():
+        patterns = [config.get('patterns', opt) for opt in config.options('patterns')]
+    else:
+        patterns = DEFAULT_PATTERNS
+    config['patterns'] = patterns
+
+    return config
+
+
+def _extract_options(config, options, *args):
     extract = {}
     for key in args:
-        extract[key] = getattr(options, key)
-    for key, default in kwargs:
-        extract[key] = getattr(options, key, default)
+        extract[key] = config[key]
+        option = getattr(options, key)
+        if option is not None:
+            extract[key] = option
     return extract
 
 
 def main(argv):
     parser = _make_parser()
     options, args = parser.parse_args(argv)
-    _setup_logging(**_extract_options(options,
+    base_config = _read_config(options.config)
+    print "Base config: %s" % base_config
+    print "With overrides: %s" % _extract_options(base_config, options, *base_config.keys())
+
+    _setup_logging(**_extract_options(base_config, options,
         'syslog', 'syslog_facility', 'syslog_server',
         'logfile', 'loglevel', 'debug'))
-    run_forever(**_extract_options(options,
+    run_forever(**_extract_options(base_config, options,
         'lcdproc', 'mpd', 'lcdd_debug', 'pattern', 'patterns',
         'retry_attempts', 'retry_backoff', 'retry_wait'))
