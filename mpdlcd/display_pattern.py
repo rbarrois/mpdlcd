@@ -461,9 +461,9 @@ class ScreenPatternList(object):
             high -= 1
 
         min_pattern = pattern_txt[low:high + 1]
-        self.min_pattern[len(min_pattern)] = min_pattern
+        self.min_patterns[len(min_pattern)] = min_pattern
 
-    def __getitem__(self, size):
+    def __getitem__(self, key):
         """Retrieve the best pattern for a given size.
 
         The algorithm is:
@@ -473,18 +473,18 @@ class ScreenPatternList(object):
         - If no shorter pattern exist, return a blank pattern.
 
         Args:
-            size (int): the target size
+            key (int): the target size
 
         Returns:
             ScreenPattern: the best pattern available for that size
         """
-        if size in self.patterns:
-            return ScreenPattern(self.patterns[size], self.field_registry)
-        for shorter in xrange(size, 0, -1):
+        if key in self.patterns:
+            return ScreenPattern(self.patterns[key], self.field_registry)
+        for shorter in xrange(key, 0, -1):
             if shorter in self.min_patterns:
                 pattern = self.min_patterns[shorter]
 
                 # Try to vertically center the pattern
-                prefix = [''] * (size - shorter / 2)
+                prefix = [''] * (key - shorter / 2)
                 return ScreenPattern(prefix + pattern, self.field_registry)
         return ScreenPattern([], self.field_registry)

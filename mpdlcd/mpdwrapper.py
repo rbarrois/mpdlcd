@@ -24,7 +24,7 @@ class MPDConnectionError(MPDError):
     pass
 
 
-class MPDClient(AutoRetryCandidate):
+class MPDClient(utils.AutoRetryCandidate):
 
     def __init__(self, host='localhost', port='6600', *args, **kwargs):
         super(MPDClient, self).__init__(*args, **kwargs)

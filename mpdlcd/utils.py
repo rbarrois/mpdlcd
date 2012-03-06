@@ -3,6 +3,7 @@
 
 import functools
 import logging
+import socket
 import time
 
 
@@ -60,7 +61,7 @@ def auto_retry(fun):
 
         while remaining_tries >= 0:
             try:
-                return fun(*args, **kwargs)
+                return fun(instance, *args, **kwargs)
             except socket.error as e:
                 last_error = e
                 instance._retry_logger.warning('Connection failed: %s', e)

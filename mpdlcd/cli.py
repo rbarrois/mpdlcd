@@ -43,13 +43,13 @@ DEFAULT_DEBUG_MODULES = ''
 BASE_CONFIG = {
     'display': {
         'refresh': ('float', DEFAULT_REFRESH),
-        'lcd_screen_name': ('str', DEFAULT_LCD_SCREEN_NAME),
+        'lcdproc_screen': ('str', DEFAULT_LCD_SCREEN_NAME),
         'pattern': ('str', DEFAULT_PATTERN),
     },
     'connections': {
         'mpd': ('str', 'localhost:%s' % DEFAULT_MPD_PORT),
         'lcdproc': ('str', 'localhost:%s' % DEFAULT_LCD_PORT),
-        'lcddebug': ('bool', False),
+        'lcdd_debug': ('bool', False),
         'retry_attempts': ('int', DEFAULT_RETRY_ATTEMPTS),
         'retry_wait': ('int', DEFAULT_RETRY_WAIT),
         'retry_backoff': ('int', DEFAULT_RETRY_BACKOFF),
@@ -141,7 +141,7 @@ def _make_lcdproc(lcd_host, lcd_port, retry_config, lcdd_debug=False):
     spawner = ServerSpawner(retry_config=retry_config, logger=logger)
 
     try:
-        return spwaner.connect()
+        return spawner.connect()
     except socket.error as e:
         logger.error('Unable to connect to lcdproc %s:%s.',
             lcd_host, lcd_port)
@@ -165,7 +165,9 @@ def _make_patterns(patterns):
     return pattern_list
 
 
-def run_forever(lcdproc='', mpd='', lcdd_debug=False, pattern='', patterns=[],
+def run_forever(lcdproc='', mpd='', lcdproc_screen=DEFAULT_LCD_SCREEN_NAME,
+        lcdd_debug=False,
+        pattern='', patterns=[],
         retry_attempts=DEFAULT_RETRY_ATTEMPTS,
         retry_wait=DEFAULT_RETRY_WAIT,
         retry_backoff=DEFAULT_RETRY_BACKOFF):
@@ -174,7 +176,10 @@ def run_forever(lcdproc='', mpd='', lcdd_debug=False, pattern='', patterns=[],
     Args:
         lcdproc (str): the target connection (host:port) for lcdproc
         mpd (str): the target connection (host:port) for mpd
+        lcdproc_screen (str): the name of the screen to use for lcdproc
         lcdd_debug (bool): whether to enable full LCDd debug
+        pattern (str): the pattern to use
+        patterns (str list): the patterns to use
         retry_attempts (int): number of connection attempts
         retry_wait (int): time between connection attempts
         retry_backoff (int): increase to between-attempts delay
@@ -194,11 +199,11 @@ def run_forever(lcdproc='', mpd='', lcdd_debug=False, pattern='', patterns=[],
         retry_config=retry_config)
 
     # Setup LCDd client
-    lcd = _make_lcdproc(lcd_host, lcd_port, lcdd_debug,
+    lcd = _make_lcdproc(lcd_host, lcd_port, lcdd_debug=lcdd_debug,
         retry_config=retry_config)
 
     # Setup connector
-    runner = lcdrunner.MpdRunner(mpd_client, lcd,
+    runner = lcdrunner.MpdRunner(mpd_client, lcd, lcdproc_screen=lcdproc_screen,
         retry_config=retry_config)
 
     # Fill pattern
@@ -210,7 +215,7 @@ def run_forever(lcdproc='', mpd='', lcdd_debug=False, pattern='', patterns=[],
         patterns = DEFAULT_PATTERNS
     pattern_list = _make_patterns(patterns)
 
-    runner.setup_pattern(pattern_list[runner.screen.height])
+    runner.setup_pattern(pattern_list)
 
     # Launch
     mpd_client.connect()
@@ -233,7 +238,7 @@ def _make_parser():
     # ---------------
     parser.add_option('-c', '--config', dest='config',
             help='Read configuration from CONFIG (default: %s)' %
-            DEFAULT_CONFIG_FILE, metaver='CONFIG', default=DEFAULT_CONFIG_FILE)
+            DEFAULT_CONFIG_FILE, metavar='CONFIG', default=DEFAULT_CONFIG_FILE)
     # End general options
 
     # Display options
@@ -280,7 +285,7 @@ def _make_parser():
     group.add_option('--retry-backoff', dest='retry_backoff', type='int',
             help='Increase RETRY_WAIT by a RETRY_BACKOFF factor after each '
                 'failure (default: %d)' % DEFAULT_RETRY_BACKOFF,
-            metaver='RETRY_BACKOFF')
+            metavar='RETRY_BACKOFF')
 
     # End connection options
     parser.add_option_group(group)
@@ -296,10 +301,10 @@ def _make_parser():
                     DEFAULT_SYSLOG_FACILITY,
             metavar='FACILITY')
 
-    group.add_option('--syslog-server', dest='syslog_server',
-            help='Log into syslog at SERVER (default: %s)' %
+    group.add_option('--syslog-address', dest='syslog_address',
+            help='Log into syslog at ADDRESS (default: %s)' %
                     DEFAULT_SYSLOG_ADDRESS,
-            metavar='SERVER')
+            metavar='ADDRESS')
 
     group.add_option('-f', '--logfile', dest='logfile',
             help="Log into LOGFILE ('-' for stderr)", metavar='LOGFILE')
@@ -319,7 +324,7 @@ def _make_parser():
 
 
 def _setup_logging(syslog=False, syslog_facility=DEFAULT_SYSLOG_FACILITY,
-        syslog_server=DEFAULT_SYSLOG_ADDRESS, logfile=DEFAULT_LOGFILE,
+        syslog_address=DEFAULT_SYSLOG_ADDRESS, logfile=DEFAULT_LOGFILE,
         loglevel=DEFAULT_LOGLEVEL, debug='', **kwargs):
     level = LOGLEVELS[loglevel]
 
@@ -329,10 +334,10 @@ def _setup_logging(syslog=False, syslog_facility=DEFAULT_SYSLOG_FACILITY,
             '%(levelname)s %(name)s %(message)s')
 
     if syslog:
-        if syslog_server and syslog_server[0] == '/':
-            address = syslog_server
+        if syslog_address and syslog_address[0] == '/':
+            address = syslog_address
         else:
-            address = _make_hostport(syslog_server, 'localhost', logging.SYSLOG_UDP_PORT)
+            address = _make_hostport(syslog_address, 'localhost', logging.SYSLOG_UDP_PORT)
         handler = logging_handlers.SysLogHandler(address, facility=syslog_facility)
         handler.setFormatter(quiet_formatter)
 
@@ -364,8 +369,8 @@ def _read_config(filename):
         if section == 'patterns':
             continue
 
-        for name, descr in defaults:
-            kind, default = desc
+        for name, descr in defaults.iteritems():
+            kind, default = descr
             if section in parser.sections() and name in parser.options(section):
                 if kind == 'int':
                     value = parser.getint(section, name)
@@ -379,8 +384,8 @@ def _read_config(filename):
                 value = default
             config[name] = value
 
-    if 'patterns' in config.sections():
-        patterns = [config.get('patterns', opt) for opt in config.options('patterns')]
+    if 'patterns' in parser.sections():
+        patterns = [parser.get('patterns', opt) for opt in parser.options('patterns')]
     else:
         patterns = DEFAULT_PATTERNS
     config['patterns'] = patterns
@@ -402,12 +407,13 @@ def main(argv):
     parser = _make_parser()
     options, args = parser.parse_args(argv)
     base_config = _read_config(options.config)
-    print "Base config: %s" % base_config
-    print "With overrides: %s" % _extract_options(base_config, options, *base_config.keys())
+    if options.loglevel == 'debug':
+        print "Base config: %s" % base_config
+        print "With overrides: %s" % _extract_options(base_config, options, *base_config.keys())
 
     _setup_logging(**_extract_options(base_config, options,
-        'syslog', 'syslog_facility', 'syslog_server',
+        'syslog', 'syslog_facility', 'syslog_address',
         'logfile', 'loglevel', 'debug'))
     run_forever(**_extract_options(base_config, options,
-        'lcdproc', 'mpd', 'lcdd_debug', 'pattern', 'patterns',
+        'lcdproc', 'mpd', 'lcdproc_screen', 'lcdd_debug', 'pattern', 'patterns',
         'retry_attempts', 'retry_backoff', 'retry_wait'))
