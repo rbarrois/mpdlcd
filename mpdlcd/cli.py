@@ -219,7 +219,11 @@ def run_forever(lcdproc='', mpd='', lcdproc_screen=DEFAULT_LCD_SCREEN_NAME,
 
     # Launch
     mpd_client.connect()
+    import ipdb; ipdb.set_trace()
     runner.run()
+
+    # Exit
+    logging.shutdown()
 
 
 LOGLEVELS = {
@@ -354,8 +358,12 @@ def _setup_logging(syslog=False, syslog_facility=DEFAULT_SYSLOG_FACILITY,
     root_logger.setLevel(level)
 
     for module in debug.split(','):
-        logging.getLogger(module).setLevel(logging.DEBUG)
-        logging.getLogger(module).addHandler(handler)
+        if not module.strip():
+            continue
+        module_logger = logging.getLogger(module)
+        module_logger.setLevel(logging.DEBUG)
+        module_logger.addHandler(handler)
+        module_logger.info("Enabling debug")
 
 
 def _read_config(filename):
