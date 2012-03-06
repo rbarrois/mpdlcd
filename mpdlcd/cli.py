@@ -219,7 +219,6 @@ def run_forever(lcdproc='', mpd='', lcdproc_screen=DEFAULT_LCD_SCREEN_NAME,
 
     # Launch
     mpd_client.connect()
-    import ipdb; ipdb.set_trace()
     runner.run()
 
     # Exit
