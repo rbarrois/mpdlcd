@@ -9,11 +9,13 @@ import re
 
 def get_version():
     version_re = re.compile(r"^VERSION = '([\w_.]+)'$")
-    with open(os.path.join(os.path.dirname(__file__), 'mpdlcd', '__init__.py')) as f:
-        for line in f:
-            match = version_re.match(line[:-1])
-            if match:
-                return match.groups()[0]
+    f = open(os.path.join(os.path.dirname(__file__), 'mpdlcd', '__init__.py'))
+    for line in f:
+        match = version_re.match(line[:-1])
+        if match:
+            f.close()
+            return match.groups()[0]
+    f.close()
     return '0.0'
 
 
