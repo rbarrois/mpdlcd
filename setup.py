@@ -28,7 +28,6 @@ setup(
     keywords=['MPD', 'lcdproc', 'lcd'],
     packages=['mpdlcd'],
     scripts=['bin/mpdlcd'],
-    data_files=[('etc', ['mpdlcd.conf'])],
     license='MIT',
     requires=[
         'mpd',
