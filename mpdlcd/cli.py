@@ -85,7 +85,7 @@ DEFAULT_PATTERNS = [
 ]
 
 
-logger = logging.getLogger('mpdlcdd')
+logger = logging.getLogger('mpdlcd')
 
 
 def _make_hostport(conn, default_host, default_port):

@@ -9,13 +9,11 @@ import re
 
 def get_version():
     version_re = re.compile(r"^VERSION = '([\w_.]+)'$")
-    f = open(os.path.join(os.path.dirname(__file__), 'mpdlcd', '__init__.py'))
-    for line in f:
-        match = version_re.match(line[:-1])
-        if match:
-            f.close()
-            return match.groups()[0]
-    f.close()
+    with open(os.path.join(os.path.dirname(__file__), 'mpdlcd', '__init__.py')) as f:
+        for line in f:
+            match = version_re.match(line[:-1])
+            if match:
+                return match.groups()[0]
     return '0.0'
 
 
@@ -29,7 +27,7 @@ setup(
     download_url="http://pypi.python.org/pypi/mpdlcd/",
     keywords=['MPD', 'lcdproc', 'lcd'],
     packages=['mpdlcd'],
-    scripts=['bin/mpdlcdd'],
+    scripts=['bin/mpdlcd'],
     data_files=[('etc', ['mpdlcd.conf'])],
     license='MIT',
     requires=[
