@@ -65,19 +65,25 @@ class MPDClient(utils.AutoRetryCandidate):
     def elapsed(self):
         logger.debug('Fetching MPD elapsed time')
         time = self.status.get('time')
-        return self._parse_time(time.split(':')[0])
+        if time:
+            return self._parse_time(time.split(':')[0])
+        else:
+            return None
 
     @property
     def total(self):
         logger.debug('Fetching MPD total time')
         time = self.status.get('time')
-        return self._parse_time(time.split(':')[-1])
+        if time:
+            return self._parse_time(time.split(':')[-1])
+        else:
+            return None
 
     @property
     def elapsed_and_total(self):
         logger.debug('Fetching MPD elapsed and total time')
         time = self.status.get('time')
-        if ':' in time:
+        if time and ':' in time:
             elapsed, total = time.split(':', 1)
             return self._parse_time(elapsed), self._parse_time(total)
         else:
