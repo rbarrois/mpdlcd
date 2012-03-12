@@ -90,5 +90,7 @@ class MpdRunner(utils.AutoRetryCandidate):
                 time.sleep(0.5)
         except (KeyboardInterrupt, SystemExit):
             pass
+        except Exception as e:
+            logger.exception("Found exception %s, exiting.", e)
         finally:
             self.quit()
