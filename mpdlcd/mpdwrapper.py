@@ -107,7 +107,7 @@ class MPDSong(object):
         for k, v in kwargs.iteritems():
             setattr(self, k, v)
 
-    def format(self, fmt='{artist} - {title}'):
+    def format(self, fmt=u'{artist} - {title}'):
         return fmt.format(
             title=self.title,
             artist=self.artist,

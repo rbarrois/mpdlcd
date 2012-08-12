@@ -187,7 +187,7 @@ class RemainingTimeField(BaseTimeField):
 class SongField(Field):
     base_name = 'song'
 
-    def __init__(self, format='', width=-1, speed=2, **kwargs):
+    def __init__(self, format=u'', width=-1, speed=2, **kwargs):
         self.format = format
         self.speed = speed
         super(SongField, self).__init__(width=width, **kwargs)
