@@ -306,6 +306,8 @@ def _make_parser():
     group = optparse.OptionGroup(parser, 'Logging')
     group.add_option('-s', '--syslog', dest='syslog', action='store_true',
             help='Enable syslog logging (default: False)')
+    group.add_option('--no-syslog', dest='syslog', action='store_false',
+            help='Disable syslog logging (Useful when enabled in config file)')
 
     group.add_option('--syslog-facility', dest='syslog_facility',
             help='Log into syslog facility FACILITY (default: %s)' %
