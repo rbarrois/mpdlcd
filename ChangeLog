@@ -1,10 +1,11 @@
-0.3.0 (Current)
-===============
+0.3.0 (13/08/2012)
+==================
 
 *Bugfix:*
 
   - Don't crash when no config file could be read
   - Don't crash when MPD returns "no current song"
+  - Don't crash when the current song has no title or no artist
   - Fix ``--debug`` option when ``--loglevel=debug`` was given (don't log lines
     twice)
 
