@@ -33,6 +33,15 @@ class MPDClient(utils.AutoRetryCandidate):
         self.host = host
         self.port = port
 
+    def _decode_text(self, text):
+        # MPD protocol states that all data is UTF-8 encoded.
+        # Ref: http://www.musicpd.org/doc/protocol/ch01s02.html
+        return unicode(text, 'utf8')
+
+    def _decode_dict(self, data):
+        return dict(
+            (k, self._decode_text(v)) for k, v in data.items())
+
     @utils.auto_retry
     def connect(self):
         if not self._connected:
@@ -98,7 +107,7 @@ class MPDClient(utils.AutoRetryCandidate):
     @utils.auto_retry
     def current_song(self):
         logger.debug(u'Fetching MPD song information')
-        return MPDSong(**self._client.currentsong())
+        return MPDSong(**self._decode_dict(self._client.currentsong()))
 
 
 class MPDSong(object):
