@@ -189,7 +189,7 @@ class SongField(Field):
 
     def __init__(self, format=u'', width=-1, speed=2, **kwargs):
         self.format = format
-        self.speed = speed
+        self.speed = int(speed)
         super(SongField, self).__init__(width=width, **kwargs)
 
     def add_to_screen(self, screen, left, top):
