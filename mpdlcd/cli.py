@@ -371,7 +371,9 @@ def _setup_logging(syslog=False, syslog_facility=DEFAULT_SYSLOG_FACILITY,
             continue
         module_logger = logging.getLogger(module)
         module_logger.setLevel(logging.DEBUG)
-        module_logger.addHandler(handler)
+        if level != logging.DEBUG:
+            # Make sure log messages are displayed
+            module_logger.addHandler(handler)
         module_logger.info("Enabling debug")
 
 
