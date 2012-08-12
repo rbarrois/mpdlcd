@@ -111,9 +111,18 @@ class MPDClient(utils.AutoRetryCandidate):
 
 
 class MPDSong(object):
+    DEFAULTS = {
+        'artist': u"<Unknown>",
+        'title': u"<Unknown>",
+        'album': u"<Unknown>",
+        'track': u"0",
+        'file': u"<Unknown>",
+    }
 
     def __init__(self, **kwargs):
-        for k, v in kwargs.iteritems():
+        defaults = dict(self.DEFAULTS)
+        defaults.update(kwargs)
+        for k, v in defaults.iteritems():
             setattr(self, k, v)
 
     def __nonzero__(self):
