@@ -1,0 +1,62 @@
+0.3.0 (Current)
+===============
+
+*Bugfix:*
+
+  - Don't crash when no config file could be read
+  - Don't crash when MPD returns "no current song"
+
+*New:*
+
+  - Handle lcdproc charset through the ``--lcdproc-charset`` option
+
+
+0.2.4 (11/03/2012)
+==================
+
+*Bugfix:*
+
+  - Properly handle 'no time' returned from MPD
+
+
+0.2.3 (08/03/2012)
+==================
+
+*New:*
+
+  - Rename ``mpdlcdd`` binary to ``mpdlcd``.
+
+
+0.2.2 (07/03/2012)
+==================
+
+*Bugfix:*
+
+  - Become python2.5-compatible by removing use of the ``with`` statement
+
+
+0.2.1 (06/03/2012)
+==================
+
+*Bugfix:*
+
+  - Fix installation path of ``/etc/mpdlcd.conf``
+
+
+0.2.0 (06/03/2012)
+==================
+
+*New:*
+
+  - Support for custom screen patterns
+  - Better support for connection timeouts & retries
+  - Packaging improvements (man page, initd script)
+  - Allow reading configuration from ``/etc/mpdlcd.conf``
+
+
+0.1.0 (09/01/2012)
+==================
+
+Initial version.
+
+.. vim:set ft=rst:
