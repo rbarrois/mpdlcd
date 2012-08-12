@@ -31,7 +31,6 @@ class MpdRunner(utils.AutoRetryCandidate):
             'state': None,
         }
 
-
     @utils.auto_retry
     def _connect_lcd(self):
         self.lcd.start_session()
@@ -60,9 +59,13 @@ class MpdRunner(utils.AutoRetryCandidate):
     @utils.auto_retry
     def update(self):
         current_song = self.client.current_song
-        if current_song.id != self._previous['song']:
-            self._previous['song'] = current_song.id
-            logger.debug('Switching to song #%s', current_song.id)
+        if current_song:
+            current_song_id = current_song.id
+        else:
+            current_song_id = None
+        if current_song_id != self._previous['song']:
+            self._previous['song'] = current_song_id
+            logger.debug('Switching to song #%s', current_song_id)
             self.pattern.song_changed(current_song)
 
         elapsed, total = self.client.elapsed_and_total

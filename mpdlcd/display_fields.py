@@ -200,6 +200,9 @@ class SongField(Field):
         return fields
 
     def song_changed(self, widget, new_song):
-        txt = self.format % self._song_dict(new_song)
+        if new_song:
+            txt = self.format % self._song_dict(new_song)
+        else:
+            txt = ''
         logger.debug('Setting widget %s to %r', widget.ref, txt)
         widget.set_text(txt)

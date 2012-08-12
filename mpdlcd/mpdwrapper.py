@@ -109,6 +109,6 @@ class MPDSong(object):
 
     def format(self, fmt='{artist} - {title}'):
         return fmt.format(
-                title=self.title,
-                artist=self.artist,
-                )
+            title=self.title,
+            artist=self.artist,
+        )
