@@ -116,6 +116,10 @@ class MPDSong(object):
         for k, v in kwargs.iteritems():
             setattr(self, k, v)
 
+    def __nonzero__(self):
+        """If no song is playing, we won't have an ID."""
+        return hasattr(self, 'id')
+
     def format(self, fmt=u'{artist} - {title}'):
         return fmt.format(
             title=self.title,
