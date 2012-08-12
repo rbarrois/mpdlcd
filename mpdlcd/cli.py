@@ -66,22 +66,22 @@ BASE_CONFIG = {
 
 DEFAULT_PATTERNS = [
     # One line
-    """{state} {song format="%(artist)s - %(title)s"} {elapsed}""",
+    u"""{state} {song format="%(artist)s - %(title)s"} {elapsed}""",
 
     # Two lines
-    """{song format="%(artist)s",speed=4} {elapsed}\n"""
-    """{song format="%(title)s",speed=2} {state}""",
+    u"""{song format="%(artist)s",speed=4} {elapsed}\n"""
+    u"""{song format="%(title)s",speed=2} {state}""",
 
     # Three lines
-    """{song format="%(artist)s",speed=4}\n"""
-    """{song format="%(album)s - %(title)s",speed=2}\n"""
-    """{state}  {elapsed} / {total}""",
+    u"""{song format="%(artist)s",speed=4}\n"""
+    u"""{song format="%(album)s - %(title)s",speed=2}\n"""
+    u"""{state}  {elapsed} / {total}""",
 
     # Four lines
-    """{song format="%(artist)s",speed=4}\n"""
-    """{song format="%(album)s",speed=4}\n"""
-    """{song format="%(title)s",speed=2}\n"""
-    """{elapsed}  {state}  {remaining}""",
+    u"""{song format="%(artist)s",speed=4}\n"""
+    u"""{song format="%(album)s",speed=4}\n"""
+    u"""{song format="%(title)s",speed=2}\n"""
+    u"""{elapsed}  {state}  {remaining}""",
 ]
 
 

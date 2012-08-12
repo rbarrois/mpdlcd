@@ -20,7 +20,7 @@ class ScreenPattern(object):
     """A screen pattern description.
 
     Attributes:
-        lines (str list): the lines of the pattern
+        lines (unicode list): the lines of the pattern
         line_fields (mpdlcd.display_fields.Field list list): List of the fields
             for each line.
         widgets (dict(mpdlcd.display_fields.Field => lcdproc.Widget)): widget to
@@ -30,7 +30,7 @@ class ScreenPattern(object):
     """
 
     def __init__(self, lines, field_registry):
-        self.lines = lines
+        self.lines = tuple(unicode(line) for line in lines)
         self.line_fields = []
         self.widgets = {}
         self.field_registry = field_registry
@@ -222,7 +222,7 @@ class ScreenPattern(object):
                 """Register a completed, fixed text, field."""
                 assert self.state == OUT_FIELD
                 self._register_field(FIXED_TEXT_FIELD,
-                    {'text': ''.join(self.block)})
+                    {'text': u''.join(self.block)})
 
             def enter_field(self):
                 """Enter a new field."""
@@ -236,14 +236,14 @@ class ScreenPattern(object):
             def leave_kind(self):
                 """Leave the field kind."""
                 self.state = IN_FIELD_OPTION_NAME
-                self.kind = ''.join(self.block)
+                self.kind = u''.join(self.block)
                 self.debug(u"Got widget kind '%s'", self.kind)
                 self._reset()
 
             def leave_option_name(self):
                 """Leave an option name."""
                 self.state = IN_FIELD_OPTION_VALUE
-                self.option_name = ''.join(self.block)
+                self.option_name = u''.join(self.block)
                 self.debug(u"Got option name '%s' for '%s'",
                     self.option_name, self.kind)
                 self._reset()
@@ -251,7 +251,7 @@ class ScreenPattern(object):
             def leave_option_value(self):
                 """Leave an option value."""
                 self.state = IN_FIELD_OPTION_NAME
-                option_value = ''.join(self.block)
+                option_value = u''.join(self.block)
                 self.options[self.option_name] = option_value
                 self.debug(u"Got option '%s=%s' for '%s'",
                     self.option_name, option_value, self.kind)
@@ -485,6 +485,6 @@ class ScreenPatternList(object):
                 pattern = self.min_patterns[shorter]
 
                 # Try to vertically center the pattern
-                prefix = [''] * (key - shorter / 2)
+                prefix = [u''] * (key - shorter / 2)
                 return ScreenPattern(prefix + pattern, self.field_registry)
         return ScreenPattern([], self.field_registry)

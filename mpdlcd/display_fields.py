@@ -190,7 +190,7 @@ class SongField(Field):
 
     @classmethod
     def _song_dict(cls, song):
-        fields = collections.defaultdict(lambda: '')
+        fields = collections.defaultdict(lambda: u'')
         fields.update({
             'artist': song.artist,
             'title': song.title,
@@ -203,6 +203,6 @@ class SongField(Field):
         if new_song:
             txt = self.format % self._song_dict(new_song)
         else:
-            txt = ''
+            txt = u''
         logger.debug(u'Setting widget %s to %r', widget.ref, txt)
         widget.set_text(txt)
