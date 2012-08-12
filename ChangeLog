@@ -5,10 +5,14 @@
 
   - Don't crash when no config file could be read
   - Don't crash when MPD returns "no current song"
+  - Fix ``--debug`` option when ``--loglevel=debug`` was given (don't log lines
+    twice)
 
 *New:*
 
   - Handle lcdproc charset through the ``--lcdproc-charset`` option
+  - Add a ``--no-syslog`` option to disable a ``syslog`` option set in the
+    configuration file.
 
 
 0.2.4 (11/03/2012)
