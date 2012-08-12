@@ -20,7 +20,7 @@ class LcdProcServer(server.Server):
 
     def encode(self, text):
         """Helper to handle server-specific text encoding."""
-        return text.encode(self.charset)
+        return text.encode(self.charset, 'ignore')
 
 
 class MpdRunner(utils.AutoRetryCandidate):
