@@ -366,6 +366,13 @@ def _setup_logging(syslog=False, syslog_facility=DEFAULT_SYSLOG_FACILITY,
 
 
 def _read_config(filename):
+    """Read configuration from the given file.
+
+    Parsing is performed through the ConfigParser library.
+
+    Returns:
+        dict: a flattened dict of (option_name, value), using defaults.
+    """
     parser = ConfigParser.RawConfigParser()
     if not parser.read(filename):
         return
@@ -373,6 +380,7 @@ def _read_config(filename):
     config = {}
 
     for section, defaults in BASE_CONFIG.iteritems():
+        # Patterns are handled separately
         if section == 'patterns':
             continue
 
@@ -401,6 +409,18 @@ def _read_config(filename):
 
 
 def _extract_options(config, options, *args):
+    """Extract options values from a ConfigParser, optparse pair.
+
+    Options given on command line take precedence over options read in the
+    configuration file.
+
+    Args:
+        config (dict): option values read from a config file through
+            ConfigParser
+        options (optparse.Options): optparse 'options' object containing options
+            values from the command line
+        *args (str tuple): name of the options to extract
+    """
     extract = {}
     for key in args:
         extract[key] = config[key]
