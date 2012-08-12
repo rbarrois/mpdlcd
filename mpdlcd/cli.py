@@ -8,6 +8,7 @@ from logging import handlers as logging_handlers
 import optparse
 import socket
 import time
+import sys
 
 from mpdlcd import lcdrunner
 from mpdlcd import mpdwrapper
@@ -59,7 +60,7 @@ BASE_CONFIG = {
         'loglevel': ('str', DEFAULT_LOGLEVEL),
         'syslog_facility': ('str', DEFAULT_SYSLOG_FACILITY),
         'syslog_address': ('str', DEFAULT_SYSLOG_ADDRESS),
-        'logfile': ('str', DEFAULT_CONFIG_FILE),
+        'logfile': ('str', DEFAULT_LOGFILE),
         'debug': ('str', DEFAULT_DEBUG_MODULES),
     },
 }
@@ -356,7 +357,7 @@ def _setup_logging(syslog=False, syslog_facility=DEFAULT_SYSLOG_FACILITY,
         handler.setFormatter(quiet_formatter)
 
     else:
-        handler = logging.FileHandler(logfile, level=level)
+        handler = logging.FileHandler(logfile)
         handler.setFormatter(verbose_formatter)
 
     root_logger = logging.getLogger()
@@ -381,8 +382,10 @@ def _read_config(filename):
         dict: a flattened dict of (option_name, value), using defaults.
     """
     parser = ConfigParser.RawConfigParser()
-    if not parser.read(filename):
-        return
+    if filename and not parser.read(filename):
+        sys.stderr.write(
+            u"Unable to open configuration file %s. Use --config='' to disable "
+            u"this warning.\n" % filename)
 
     config = {}
 
