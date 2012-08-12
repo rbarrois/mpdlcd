@@ -13,6 +13,16 @@ from mpdlcd import utils
 logger = logging.getLogger(__name__)
 
 
+class LcdProcServer(server.Server):
+    def __init__(self, hostname, port, charset, *args, **kwargs):
+        super(LcdProcServer, self).__init__(hostname, port, *args, **kwargs)
+        self.charset = charset
+
+    def encode(self, text):
+        """Helper to handle server-specific text encoding."""
+        return text.encode(self.charset)
+
+
 class MpdRunner(utils.AutoRetryCandidate):
     def __init__(self, client, lcd, lcdproc_screen, *args, **kwargs):
         super(MpdRunner, self).__init__(logger=logger, *args, **kwargs)

@@ -87,6 +87,15 @@ class Field(object):
     def time_changed(self, widget, elapsed, total):
         pass
 
+    def set_widget_text(self, widget, text):
+        """Sets the text of a widget, taking into account server charset.
+
+        Args:
+            widget (lcdproc.Widget): widget whose text should be set
+            text (unicode): text to set
+        """
+        widget.set_text(widget.screen.server.encode(text))
+
     def __repr__(self):
         return '<Field %s (%d)>' % (self.name, self.width)
 
@@ -100,8 +109,8 @@ class FixedText(Field):
         self.text = text
     
     def add_to_screen(self, screen, left, top):
-        return screen.add_string_widget(self.name, self.text,
-            left, top)
+        return screen.add_string_widget(self.name,
+            screen.server.encode(self.text), left, top)
 
 
 @register_field
@@ -205,4 +214,4 @@ class SongField(Field):
         else:
             txt = u''
         logger.debug(u'Setting widget %s to %r', widget.ref, txt)
-        widget.set_text(txt)
+        self.set_widget_text(widget, txt)

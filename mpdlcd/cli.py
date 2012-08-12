@@ -2,8 +2,6 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2011-2012 Raphaël Barrois
 
-from lcdproc import server as lcdproc_server
-
 import ConfigParser
 import logging
 from logging import handlers as logging_handlers
@@ -28,6 +26,7 @@ DEFAULT_PATTERN = ''
 # Connection
 DEFAULT_MPD_PORT = 6600
 DEFAULT_LCD_PORT = 13666
+DEFAULT_LCDPROC_CHARSET = 'iso-8859-1'
 DEFAULT_RETRY_ATTEMPTS = 3
 DEFAULT_RETRY_WAIT = 3
 DEFAULT_RETRY_BACKOFF = 2
@@ -49,6 +48,7 @@ BASE_CONFIG = {
     'connections': {
         'mpd': ('str', 'localhost:%s' % DEFAULT_MPD_PORT),
         'lcdproc': ('str', 'localhost:%s' % DEFAULT_LCD_PORT),
+        'lcdproc_charset': ('str', DEFAULT_LCDPROC_CHARSET),
         'lcdd_debug': ('bool', False),
         'retry_attempts': ('int', DEFAULT_RETRY_ATTEMPTS),
         'retry_wait': ('int', DEFAULT_RETRY_WAIT),
@@ -116,12 +116,14 @@ def _make_hostport(conn, default_host, default_port):
     return host, int(port)
 
 
-def _make_lcdproc(lcd_host, lcd_port, retry_config, lcdd_debug=False):
+def _make_lcdproc(lcd_host, lcd_port, retry_config,
+        charset=DEFAULT_LCDPROC_CHARSET, lcdd_debug=False):
     """Create and connect to the LCDd server.
 
     Args:
         lcd_host (str): the hostname to connect to
         lcd_prot (int): the port to connect to
+        charset (str): the charset to use when sending messages to lcdproc
         lcdd_debug (bool): whether to enable full LCDd debug
         retry_attempts (int): the number of connection attempts
         retry_wait (int): the time to wait between connection attempts
@@ -136,7 +138,8 @@ def _make_lcdproc(lcd_host, lcd_port, retry_config, lcdd_debug=False):
 
         @utils.auto_retry
         def connect(self):
-            return lcdproc_server.Server(lcd_host, lcd_port, debug=lcdd_debug)
+            return lcdrunner.LcdProcServer(
+                lcd_host, lcd_port, charset, debug=lcdd_debug)
 
     spawner = ServerSpawner(retry_config=retry_config, logger=logger)
 
@@ -166,6 +169,7 @@ def _make_patterns(patterns):
 
 
 def run_forever(lcdproc='', mpd='', lcdproc_screen=DEFAULT_LCD_SCREEN_NAME,
+        lcdproc_charset=DEFAULT_LCDPROC_CHARSET,
         lcdd_debug=False,
         pattern='', patterns=[],
         retry_attempts=DEFAULT_RETRY_ATTEMPTS,
@@ -177,6 +181,7 @@ def run_forever(lcdproc='', mpd='', lcdproc_screen=DEFAULT_LCD_SCREEN_NAME,
         lcdproc (str): the target connection (host:port) for lcdproc
         mpd (str): the target connection (host:port) for mpd
         lcdproc_screen (str): the name of the screen to use for lcdproc
+        lcdproc_charset (str): the charset to use with lcdproc
         lcdd_debug (bool): whether to enable full LCDd debug
         pattern (str): the pattern to use
         patterns (str list): the patterns to use
@@ -200,7 +205,7 @@ def run_forever(lcdproc='', mpd='', lcdproc_screen=DEFAULT_LCD_SCREEN_NAME,
 
     # Setup LCDd client
     lcd = _make_lcdproc(lcd_host, lcd_port, lcdd_debug=lcdd_debug,
-        retry_config=retry_config)
+        charset=lcdproc_charset, retry_config=retry_config)
 
     # Setup connector
     runner = lcdrunner.MpdRunner(mpd_client, lcd, lcdproc_screen=lcdproc_screen,
@@ -273,6 +278,8 @@ def _make_parser():
             help='Connect to lcdproc at LCDPROC', metavar='LCDPROC')
     group.add_option('-m', '--mpd', dest='mpd',
             help='Connect to mpd running at MPD', metavar='MPD')
+    group.add_option('--lcdproc-charset', dest='lcdproc_charset',
+            help='Use CHARSET for communications to lcdproc', metavar='CHARSET')
     group.add_option('--lcdd-debug', dest='lcdd_debug', action='store_true',
             help='Add full debug output of LCDd commands', default=False)
 
@@ -444,5 +451,5 @@ def main(argv):
         'syslog', 'syslog_facility', 'syslog_address',
         'logfile', 'loglevel', 'debug'))
     run_forever(**_extract_options(base_config, options,
-        'lcdproc', 'mpd', 'lcdproc_screen', 'lcdd_debug', 'pattern', 'patterns',
-        'retry_attempts', 'retry_backoff', 'retry_wait'))
+        'lcdproc', 'mpd', 'lcdproc_charset', 'lcdproc_screen', 'lcdd_debug',
+        'pattern', 'patterns', 'retry_attempts', 'retry_backoff', 'retry_wait'))
