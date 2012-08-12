@@ -36,7 +36,7 @@ class MPDClient(utils.AutoRetryCandidate):
     @utils.auto_retry
     def connect(self):
         if not self._connected:
-            logger.info('Connecting to MPD server at %s:%s', self.host, self.port)
+            logger.info(u'Connecting to MPD server at %s:%s', self.host, self.port)
             self._client.connect(host=self.host, port=self.port)
             self._connected = True
 
@@ -47,12 +47,12 @@ class MPDClient(utils.AutoRetryCandidate):
 
     @property
     def random(self):
-        logger.debug('Fetching MPD random state')
+        logger.debug(u'Fetching MPD random state')
         return self.status['random'] == 1
 
     @property
     def repeat(self):
-        logger.debug('Fetchin MPD repeat state')
+        logger.debug(u'Fetchin MPD repeat state')
         return self.status['repeat'] == 1
 
     def _parse_time(self, time):
@@ -63,7 +63,7 @@ class MPDClient(utils.AutoRetryCandidate):
 
     @property
     def elapsed(self):
-        logger.debug('Fetching MPD elapsed time')
+        logger.debug(u'Fetching MPD elapsed time')
         time = self.status.get('time')
         if time:
             return self._parse_time(time.split(':')[0])
@@ -72,7 +72,7 @@ class MPDClient(utils.AutoRetryCandidate):
 
     @property
     def total(self):
-        logger.debug('Fetching MPD total time')
+        logger.debug(u'Fetching MPD total time')
         time = self.status.get('time')
         if time:
             return self._parse_time(time.split(':')[-1])
@@ -81,7 +81,7 @@ class MPDClient(utils.AutoRetryCandidate):
 
     @property
     def elapsed_and_total(self):
-        logger.debug('Fetching MPD elapsed and total time')
+        logger.debug(u'Fetching MPD elapsed and total time')
         time = self.status.get('time')
         if time and ':' in time:
             elapsed, total = time.split(':', 1)
@@ -91,13 +91,13 @@ class MPDClient(utils.AutoRetryCandidate):
 
     @property
     def state(self):
-        logger.debug('Fetching MPD state')
+        logger.debug(u'Fetching MPD state')
         return self.status['state']
 
     @property
     @utils.auto_retry
     def current_song(self):
-        logger.debug('Fetching MPD song information')
+        logger.debug(u'Fetching MPD song information')
         return MPDSong(**self._client.currentsong())
 
 

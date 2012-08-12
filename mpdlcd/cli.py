@@ -143,7 +143,7 @@ def _make_lcdproc(lcd_host, lcd_port, retry_config, lcdd_debug=False):
     try:
         return spawner.connect()
     except socket.error as e:
-        logger.error('Unable to connect to lcdproc %s:%s.',
+        logger.error(u'Unable to connect to lcdproc %s:%s.',
             lcd_host, lcd_port)
         raise SystemExit(1)
 

@@ -36,19 +36,19 @@ class MpdRunner(utils.AutoRetryCandidate):
         self.lcd.start_session()
 
     def setup_screen(self, screen_name):
-        logger.debug('Adding lcdproc screen %s', screen_name)
+        logger.debug(u'Adding lcdproc screen %s', screen_name)
         screen = self.lcd.add_screen(screen_name)
         screen.set_heartbeat('off')
         screen.set_priority(64)
 
         width = self.lcd.server_info['screen_width']
         height = self.lcd.server_info['screen_height']
-        logger.info('LCD screen is %dx%d', width, height)
+        logger.info(u'LCD screen is %dx%d', width, height)
 
         screen.set_width(width)
         screen.set_height(height)
 
-        logger.info('%s screen added to lcdproc.', screen_name)
+        logger.info(u'%s screen added to lcdproc.', screen_name)
         return screen
 
     def setup_pattern(self, patterns):
@@ -65,28 +65,28 @@ class MpdRunner(utils.AutoRetryCandidate):
             current_song_id = None
         if current_song_id != self._previous['song']:
             self._previous['song'] = current_song_id
-            logger.debug('Switching to song #%s', current_song_id)
+            logger.debug(u'Switching to song #%s', current_song_id)
             self.pattern.song_changed(current_song)
 
         elapsed, total = self.client.elapsed_and_total
         if (elapsed, total) != self._previous['elapsed_and_total']:
-            logger.debug('Updating elapsed/total time to %s/%s', elapsed, total)
+            logger.debug(u'Updating elapsed/total time to %s/%s', elapsed, total)
             self._previous['elapsed_and_total'] = (elapsed, total)
             self.pattern.time_changed(elapsed, total)
 
         state = self.client.state
         if state != self._previous['state']:
-            logger.debug('State changed from %s to %s',
+            logger.debug(u'State changed from %s to %s',
                     self._previous['state'], state)
             self._previous['state'] = state
             self.pattern.state_changed(state)
 
     def quit(self):
-        logger.info('Exiting: removing screen %s', self.lcdproc_screen)
+        logger.info(u'Exiting: removing screen %s', self.lcdproc_screen)
         self.lcd.del_screen(self.lcdproc_screen)
 
     def run(self):
-        logger.info('Starting update loop.')
+        logger.info(u'Starting update loop.')
         try:
             while True:
                 self.update()
@@ -94,6 +94,6 @@ class MpdRunner(utils.AutoRetryCandidate):
         except (KeyboardInterrupt, SystemExit):
             pass
         except Exception as e:
-            logger.exception("Found exception %s, exiting.", e)
+            logger.exception(u"Found exception %s, exiting.", e)
         finally:
             self.quit()

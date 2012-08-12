@@ -23,7 +23,7 @@ class FieldRegistry(object):
             raise FieldRegistryError(
                 "Need a name to register field %s." % field_class)
         elif name not in cls._REGISTRY:
-            logger.debug('Registring field %s', name)
+            logger.debug(u'Registring field %s', name)
             cls._REGISTRY[name] = field_class
         else:
             if cls._REGISTRY[name] != field_class:
@@ -116,7 +116,7 @@ class StateField(Field):
 
     def state_changed(self, widget, new_state):
         name = MPD_TO_LCDD_MAP.get(new_state, MPD_STOP)
-        logger.debug('Setting widget %s to %r', widget.ref, name)
+        logger.debug(u'Setting widget %s to %r', widget.ref, name)
         widget.set_name(name)
 
 
@@ -140,7 +140,7 @@ class BaseTimeField(Field):
     def state_changed(self, widget, new_state):
         if new_state not in (MPD_PLAY, MPD_PAUSE):
             txt = self._format_time(None)
-            logger.debug('Setting widget %s to %r', widget.ref, txt)
+            logger.debug(u'Setting widget %s to %r', widget.ref, txt)
             widget.set_text(txt)
 
 
@@ -150,7 +150,7 @@ class ElapsedTimeField(BaseTimeField):
 
     def time_changed(self, widget, elapsed, total):
         txt = self._format_time(elapsed)
-        logger.debug('Setting widget %s to %r', widget.ref, txt)
+        logger.debug(u'Setting widget %s to %r', widget.ref, txt)
         widget.set_text(txt)
 
 
@@ -160,7 +160,7 @@ class TotalTimeField(BaseTimeField):
 
     def time_changed(self, widget, elapsed, total):
         txt = self._format_time(total)
-        logger.debug('Setting widget %s to %r', widget.ref, txt)
+        logger.debug(u'Setting widget %s to %r', widget.ref, txt)
         widget.set_text(txt)
 
 
@@ -170,7 +170,7 @@ class RemainingTimeField(BaseTimeField):
 
     def time_changed(self, widget, elapsed, total):
         txt = self._format_time(total - elapsed)
-        logger.debug('Setting widget %s to %r', widget.ref, txt)
+        logger.debug(u'Setting widget %s to %r', widget.ref, txt)
         widget.set_text(txt)
 
 
@@ -204,5 +204,5 @@ class SongField(Field):
             txt = self.format % self._song_dict(new_song)
         else:
             txt = ''
-        logger.debug('Setting widget %s to %r', widget.ref, txt)
+        logger.debug(u'Setting widget %s to %r', widget.ref, txt)
         widget.set_text(txt)
