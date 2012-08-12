@@ -423,8 +423,10 @@ def _extract_options(config, options, *args):
     """
     extract = {}
     for key in args:
+        if key not in args:
+            continue
         extract[key] = config[key]
-        option = getattr(options, key)
+        option = getattr(options, key, None)
         if option is not None:
             extract[key] = option
     return extract
