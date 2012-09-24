@@ -117,6 +117,7 @@ class MPDSong(object):
         'album': u"<Unknown>",
         'track': u"0",
         'file': u"<Unknown>",
+        'time': u'??:??',
     }
 
     def __init__(self, **kwargs):
