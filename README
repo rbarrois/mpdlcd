@@ -29,9 +29,12 @@ Installing
 The simplest way to install MPDLcd is to use your distribution's packages.
 
 Known packages exist for the following distributions:
+
 - Gentoo: see the Sunrise overlay at http://overlays.gentoo.org/proj/sunrise/browser/app-misc/mpdlcd
 
+
 If it hasn't been packaged for your distribution yet, you can also install from sources by hand:
+
 - Fetch the tarball from `PyPI <http://pypi.python.org/pypi/mpdlcd>`_
 - Untar it
 - Run ``python setup.py install``
@@ -45,6 +48,7 @@ Reporting issues
 Issues should be reported on https://github.com/rbarrois/issues.
 
 Crash report should include:
+
 - Current MPD status (playing, stopped, ...)
 - Custom ``/etc/mpdlcd.conf`` file content
 - Current MPDLcd version, as given by ``mpdlcd --version``
@@ -59,5 +63,6 @@ Contact
 The main channel for reporting issues would be https://github.com/rbarrois/issues.
 
 I'm also available:
+
 - By email, at raphael.barrois+mpdlcd@polytechnique.org
 - On IRC, as Xelnor on irc.freenode.net
