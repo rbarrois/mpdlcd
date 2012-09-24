@@ -22,7 +22,7 @@ setup(
     version=get_version(),
     description="Display MPD status on a lcdproc server.",
     author='Raphaël Barrois',
-    author_email='raphael.barrois@polytechnique.org',
+    author_email='raphael.barrois+mpdlcd@polytechnique.org',
     url='http://github.com/rbarrois/mpdlcd',
     download_url="http://pypi.python.org/pypi/mpdlcd/",
     keywords=['MPD', 'lcdproc', 'lcd'],
