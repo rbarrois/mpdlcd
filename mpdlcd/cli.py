@@ -10,11 +10,12 @@ import socket
 import time
 import sys
 
-from mpdlcd import lcdrunner
-from mpdlcd import mpdwrapper
-from mpdlcd import display_fields
-from mpdlcd import display_pattern
-from mpdlcd import utils
+from . import lcdrunner
+from . import mpdwrapper
+from . import display_fields
+from . import display_pattern
+from . import utils
+from . import __version__
 
 # General
 DEFAULT_CONFIG_FILE = '/etc/mpdlcd.conf'
@@ -241,7 +242,7 @@ LOGLEVELS = {
 
 
 def _make_parser():
-    parser = optparse.OptionParser()
+    parser = optparse.OptionParser(version='%prog ' + __version__)
 
     # General options
     # ---------------
