@@ -5,6 +5,7 @@
 
   - Fix ``mpdlcd --version``
   - Don't crash when the current song has no title or no artist
+  - Fix the ``{remaining}`` display field when no song is playing
 
 0.3.0 (13/08/2012)
 ==================

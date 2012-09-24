@@ -178,7 +178,11 @@ class RemainingTimeField(BaseTimeField):
     base_name = 'remaining'
 
     def time_changed(self, widget, elapsed, total):
-        txt = self._format_time(total - elapsed)
+        if total is not None and elapsed is not None:
+            remaining = total - elapsed
+        else:
+            remaining = None
+        txt = self._format_time(remaining)
         logger.debug(u'Setting widget %s to %r', widget.ref, txt)
         widget.set_text(txt)
 
