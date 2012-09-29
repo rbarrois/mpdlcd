@@ -114,29 +114,54 @@ class MPDClient(utils.AutoRetryCandidate):
         return MPDSong(**song_tags)
 
 
+class SongTag(object):
+    """A song tag.
+
+    Attributes:
+        name (str): name of the tag
+        default (str): default text for the tag
+        alternate_tags (str list): alternate fields from which this tag may be
+            filled
+    """
+    def __init__(self, name, default=u"", *alternate_tags):
+        self.name = name
+        self.default = default
+        self.alternate_tags = alternate_tags
+
+    def get(self, tags):
+        """Find an adequate value for this field from a dict of tags."""
+        # Try to find our name
+        value = tags.get(self.name, u'')
+
+        for name in self.alternate_tags:
+            # Iterate of alternates until a non-empty value is found
+            value = value or tags.get(name, u'')
+
+        # If we still have nothing, return our default
+        value = value or self.default
+        return value
+
 
 class MPDSong(object):
-    DEFAULTS = {
-        'artist': u"<Unknown>",
-        'title': u"<Unknown>",
-        'album': u"<Unknown>",
-        'track': u"0",
-        'file': u"<Unknown>",
-        'time': u'??:??',
-    }
+    BASE_TAGS = (
+        SongTag('artist', u"<Unknown>", 'albumartist', 'composer', 'performer'),
+        SongTag('title', u"<Unknown>", 'name'),
+        SongTag('name', u"<Unknown>", 'title'),
+        SongTag('time', u"--:--"),
+        SongTag('file', u"<Unknown>"),
+    )
 
     def __init__(self, **kwargs):
-        defaults = dict(self.DEFAULTS)
-        defaults.update(kwargs)
-        for k, v in defaults.iteritems():
-            setattr(self, k, v)
+        self.tags = dict((k.lower(), v) for k, v in kwargs.items())
+        for tag in self.BASE_TAGS:
+            self.tags[tag.name] = tag.get(self.tags)
+
+        for name, value in self.tags.items():
+            setattr(self, name, value)
 
     def __nonzero__(self):
         """If no song is playing, we won't have an ID."""
-        return hasattr(self, 'id')
+        return 'id' in self.tags
 
     def format(self, fmt=u'{artist} - {title}'):
-        return fmt.format(
-            title=self.title,
-            artist=self.artist,
-        )
+        return fmt.format(**self.tags)
