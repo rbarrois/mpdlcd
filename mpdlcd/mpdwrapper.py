@@ -101,13 +101,18 @@ class MPDClient(utils.AutoRetryCandidate):
     @property
     def state(self):
         logger.debug(u'Fetching MPD state')
-        return self.status['state']
+        state = self.status['state']
+        logger.debug(u'MPD state: %r', state)
+        return state
 
     @property
     @utils.auto_retry
     def current_song(self):
         logger.debug(u'Fetching MPD song information')
-        return MPDSong(**self._decode_dict(self._client.currentsong()))
+        song_tags = self._decode_dict(self._client.currentsong())
+        logger.debug(u'MPD currentsong: %r', song_tags)
+        return MPDSong(**song_tags)
+
 
 
 class MPDSong(object):
