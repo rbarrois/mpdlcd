@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-# Copyright (c) 2011-2012 Raphaël Barrois
+# Copyright (c) 2011-2013 Raphaël Barrois
 
 from distutils.core import setup
 from distutils import cmd
