@@ -30,7 +30,7 @@ setup(
     scripts=['bin/mpdlcd'],
     license='MIT',
     requires=[
-        'mpd',
+        'python-mpd2',
         'lcdproc',
     ],
     classifiers=[

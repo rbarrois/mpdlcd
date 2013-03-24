@@ -35,9 +35,9 @@ Known packages exist for the following distributions:
 
 If it hasn't been packaged for your distribution yet, you can also install from sources by hand:
 
-- Fetch the tarball from `PyPI <http://pypi.python.org/pypi/mpdlcd>`_
-- Untar it
-- Run ``python setup.py install``
+.. code-block::
+
+  pip install mpdlcd
 
 An example initd script is provided in the *initd/* folder.
 
