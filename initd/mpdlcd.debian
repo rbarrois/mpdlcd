@@ -1,0 +1,60 @@
+#
+# mpdlcd initscript for mpdlcd
+# by Stefaan Verfaillie
+#
+### BEGIN INIT INFO
+# Provides:          mpdlcd
+# Required-Start:    $syslog
+# Required-Stop:     $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: MPD client for lcdproc
+# Description:       Display MPD status
+### END INIT INFO
+#
+#
+#
+
+LCDPROC_SERVER=${LCDPROC_SERVER:-}
+MPD_SERVER=${MPD_SERVER:-}
+LOGLEVEL=${LOGLEVEL:-info}
+SYSLOG_FACILITY=${SYSLOG_FACILITY:-daemon}
+
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+DAEMON=/usr/local/bin/mpdlcd
+PIDFILE=/var/run/mpdlcd.pid
+NAME="mpdlcd"
+DESC="mpdlcd"
+DAEMON_OPTS="--lcdproc=\"${LCDPROC_SERVER}\" --mpd=\"${MPD_SERVER}\" --loglevel=\"${LOGLEVEL}\" --syslog"
+DAEMON_OPTS="--loglevel=${LOGLEVEL} --syslog"
+
+test -x $DAEMON || (echo "$DAEMON does not exist" && exit 0)
+
+set -e
+
+case "$1" in
+  start)
+  echo -n "Starting ${DESC}: "
+  start-stop-daemon --start --background --quiet --pidfile=$PIDFILE -b --make-pidfile --exec ${DAEMON} -- ${DAEMON_OPTS}
+  echo "${NAME}."
+  ;;    
+  stop)
+  echo -n "Stopping $DESC: "
+  start-stop-daemon --stop --oknodo --pidfile=${PIDFILE}
+  echo "$NAME."
+  ;;
+  restart|force-reload)
+  echo -n "Restarting $DESC: "
+  $0 stop
+  sleep 1
+  $0 start
+  ;;
+  *)
+  N=/etc/init.d/$NAME
+  # echo "Usage: $N {start|stop|restart|reload|force-reload}" >&2
+  echo "Usage: $N {start|stop|restart|force-reload}" >&2
+  exit 1
+  ;;
+esac
+
+exit 0

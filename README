@@ -39,7 +39,7 @@ If it hasn't been packaged for your distribution yet, you can also install from 
 
   pip install mpdlcd
 
-An example initd script is provided in the *initd/* folder.
+Example initd scripts are provided in the *initd/* folder.
 
 
 Reporting issues
