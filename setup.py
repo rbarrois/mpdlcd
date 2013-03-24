@@ -17,6 +17,48 @@ def get_version():
     return '0.0'
 
 
+class test(cmd.Command):
+    """Run the tests for this package."""
+    command_name = 'test'
+    description = 'run the tests associated with the package'
+
+    user_options = [
+        ('test-suite=', None, "A test suite to run (defaults to 'tests')"),
+    ]
+
+    def initialize_options(self):
+        self.test_runner = None
+        self.test_suite = None
+
+    def finalize_options(self):
+        self.ensure_string('test_suite', 'tests')
+
+    def run(self):
+        """Run the test suite."""
+        try:
+            import unittest2 as unittest
+        except ImportError:
+            import unittest
+
+        if self.verbose:
+            verbosity=1
+        else:
+            verbosity=0
+
+        loader = unittest.TestLoader()
+        suite = unittest.TestSuite()
+
+        if self.test_suite == 'tests':
+            for test_module in loader.discover('.'):
+                suite.addTest(test_module)
+        else:
+            suite.addTest(loader.loadTestsFromName(self.test_suite))
+
+        result = unittest.TextTestRunner(verbosity=verbosity).run(suite)
+        if not result.wasSuccessful():
+            sys.exit(1)
+
+
 setup(
     name='mpdlcd',
     version=get_version(),
@@ -30,7 +72,7 @@ setup(
     scripts=['bin/mpdlcd'],
     license='MIT',
     requires=[
-        'python-mpd2',
+        'python_mpd2',
         'lcdproc',
     ],
     classifiers=[
@@ -41,5 +83,6 @@ setup(
         'Programming Language :: Python',
         'Topic :: Multimedia :: Sound/Audio',
     ],
+    cmdclass={'test': test},
 )
 
