@@ -28,16 +28,39 @@ Installing
 
 The simplest way to install MPDLcd is to use your distribution's packages.
 
-Known packages exist for the following distributions:
 
-- Gentoo: see the Sunrise overlay at http://overlays.gentoo.org/proj/sunrise/browser/app-misc/mpdlcd
+Gentoo
+""""""
 
+Use the Sunrise overlay at http://overlays.gentoo.org/proj/sunrise/browser/app-misc/mpdlcd
+
+
+Debian/Ubuntu
+"""""""""""""
+
+1. Install the ``python-mpd`` package:
+
+   .. code-block:: sh
+
+      apt-get install python-mpd
+
+2. Install ``mpdlcd`` from PIP:
+
+   .. code-block:: sh
+
+      pip install mpdlcd
+
+
+Other
+"""""
 
 If it hasn't been packaged for your distribution yet, you can also install from sources by hand:
 
 .. code-block::
 
   pip install mpdlcd
+
+This will pull in the ``python-mpd`` and ``lcdproc`` Python libraries.
 
 Example initd scripts are provided in the *initd/* folder.
 
