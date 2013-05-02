@@ -72,6 +72,15 @@ class MPDHook(object):
 
 
 @register_hook
+class StatusHook(MPDHook):
+    """The whole MPD status result."""
+    name = 'status'
+
+    def fetch(self, client):
+        return client.status
+
+
+@register_hook
 class StateHook(MPDHook):
     name = 'state'
 
