@@ -14,6 +14,7 @@ from . import lcdrunner
 from . import mpdwrapper
 from . import display_fields
 from . import display_pattern
+from . import mpdhooks
 from . import utils
 from . import __version__
 
@@ -163,8 +164,11 @@ def _make_patterns(patterns):
         mpdlcd.display_pattern.ScreenPatternList: a list of patterns from the
             given entries.
     """
-    registry = display_fields.FieldRegistry()
-    pattern_list = display_pattern.ScreenPatternList(registry)
+    field_registry = display_fields.FieldRegistry()
+
+    pattern_list = display_pattern.ScreenPatternList(
+            field_registry=field_registry,
+    )
     for pattern in patterns:
         pattern_list.add(pattern.split('\n'))
     return pattern_list
@@ -222,7 +226,8 @@ def run_forever(lcdproc='', mpd='', lcdproc_screen=DEFAULT_LCD_SCREEN_NAME,
         patterns = DEFAULT_PATTERNS
     pattern_list = _make_patterns(patterns)
 
-    runner.setup_pattern(pattern_list)
+    mpd_hook_registry = mpdhooks.HookRegistry()
+    runner.setup_pattern(pattern_list, hook_registry=mpd_hook_registry)
 
     # Launch
     mpd_client.connect()

@@ -62,6 +62,7 @@ MPD_TO_LCDD_MAP = {
 
 class Field(object):
     base_name = None
+    target_hooks = []
 
     def __init__(self, ref, width=-1, **kwargs):
         assert self.base_name
@@ -76,7 +77,30 @@ class Field(object):
         return self.width < 0
 
     def add_to_screen(self, screen, left, top):
+        """Add the field to the screen.
+
+        The 'screen' object is a lcdproc Screen object, and left/top indicate
+        the topleft corner attributed to the field by the global pattern.
+
+        This method must return the generated widget.
+        """
         raise NotImplementedError()
+
+    def register_hooks(self):
+        """Register hooks to be notified of field changes.
+
+        Should return a list of fields whose information is watched.
+        """
+        return self.target_hooks
+
+    def hook_changed(self, hook_name, widget, new_data):
+        if hook_name == 'song':
+            self.song_changed(widget, new_data)
+        elif hook_name == 'state':
+            self.state_changed(widget, new_data)
+        elif hook_name == 'elapsed_and_total':
+            elapsed, total = new_data
+            self.time_changed(widget, elapsed, total)
 
     def song_changed(self, widget, new_song):
         pass
@@ -116,6 +140,7 @@ class FixedText(Field):
 @register_field
 class StateField(Field):
     base_name = 'state'
+    target_hooks = ['state']
 
     def __init__(self, **kwargs):
         super(StateField, self).__init__(width=1, **kwargs)
@@ -130,6 +155,8 @@ class StateField(Field):
 
 
 class BaseTimeField(Field):
+    target_hooks = ['state', 'elapsed_and_total']
+
     def __init__(self, **kwargs):
         super(BaseTimeField, self).__init__(width=5, **kwargs)
 
@@ -190,6 +217,7 @@ class RemainingTimeField(BaseTimeField):
 @register_field
 class SongField(Field):
     base_name = 'song'
+    target_hooks = ['song']
 
     def __init__(self, format=u'', width=-1, speed=2, **kwargs):
         self.format = format

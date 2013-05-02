@@ -34,6 +34,7 @@ class MpdRunner(utils.AutoRetryCandidate):
         self._connect_lcd()
         self.pattern = None
         self.screen = self.setup_screen(self.lcdproc_screen)
+        self.hooks = {}
         self.client = client
         self._previous = {
             'song': None,
@@ -61,35 +62,23 @@ class MpdRunner(utils.AutoRetryCandidate):
         logger.info(u'%s screen added to lcdproc.', screen_name)
         return screen
 
-    def setup_pattern(self, patterns):
+    def setup_pattern(self, patterns, hook_registry):
         self.pattern = patterns[self.screen.height]
         self.pattern.parse()
         self.pattern.add_to_screen(self.screen.width, self.screen)
+        self.setup_hooks(hook_registry)
+
+    def setup_hooks(self, hook_registry):
+        for hook_name in self.pattern.active_hooks():
+            hook = hook_registry.create(hook_name)
+            self.hooks[hook_name] = hook
 
     @utils.auto_retry
     def update(self):
-        current_song = self.client.current_song
-        if current_song:
-            current_song_id = current_song.id
-        else:
-            current_song_id = None
-        if current_song_id != self._previous['song']:
-            self._previous['song'] = current_song_id
-            logger.debug(u'Switching to song #%s', current_song_id)
-            self.pattern.song_changed(current_song)
-
-        elapsed, total = self.client.elapsed_and_total
-        if (elapsed, total) != self._previous['elapsed_and_total']:
-            logger.debug(u'Updating elapsed/total time to %s/%s', elapsed, total)
-            self._previous['elapsed_and_total'] = (elapsed, total)
-            self.pattern.time_changed(elapsed, total)
-
-        state = self.client.state
-        if state != self._previous['state']:
-            logger.debug(u'State changed from %s to %s',
-                    self._previous['state'], state)
-            self._previous['state'] = state
-            self.pattern.state_changed(state)
+        for hook_name, hook in self.hooks.items():
+            updated, new_data = hook.handle(self.client)
+            if updated:
+                self.pattern.hook_changed(hook_name, new_data)
 
     def quit(self):
         logger.info(u'Exiting: removing screen %s', self.lcdproc_screen)

@@ -27,6 +27,8 @@ class ScreenPattern(object):
             use for each field
         field_registry (mpdlcd.display_fields.FieldRegistry): the registry of
             available fields.
+        field_hooks (dict(str => list(mpdlcd.display_fields.Field))): list of
+            fields interested in a given hook (i.e data change)
     """
 
     def __init__(self, lines, field_registry):
@@ -34,6 +36,7 @@ class ScreenPattern(object):
         self.line_fields = []
         self.widgets = {}
         self.field_registry = field_registry
+        self.hooks = collections.defaultdict(lambda: [])
 
     def parse(self):
         """Parse the lines, and fill self.line_fields accordingly."""
@@ -132,21 +135,22 @@ class ScreenPattern(object):
 
                 self.widgets[field] = field.add_to_screen(screen,
                     left, 1 + lineno)
+                self.register_hooks(field)
 
-    def time_changed(self, elapsed, total):
-        """Called whenever the elapsed/total time of MPD changed."""
-        for field, widget in self.widgets.iteritems():
-            field.time_changed(widget, elapsed, total)
+    def register_hooks(self, field):
+        """Register a field on its target hooks."""
+        for hook in field.register_hooks():
+            self.hooks[hook].append(field)
 
-    def state_changed(self, new_state):
-        """Called whenever the state of MPD changed."""
-        for field, widget in self.widgets.iteritems():
-            field.state_changed(widget, new_state)
+    def hook_changed(self, hook, new_data):
+        """Called whenever the data for a hook changed."""
+        for field in self.hooks[hook]:
+            widget = self.widgets[field]
+            field.hook_changed(hook, widget, new_data)
 
-    def song_changed(self, new_song):
-        """Called whenever the current song changed."""
-        for field, widget in self.widgets.iteritems():
-            field.song_changed(widget, new_song)
+    def active_hooks(self):
+        """Retrieve the list of active hooks."""
+        return list(self.hooks.keys())
 
     def parse_line(self, line):
         """Parse a line of text.
