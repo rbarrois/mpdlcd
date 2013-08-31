@@ -6,6 +6,7 @@ from distutils.core import setup
 from distutils import cmd
 import os
 import re
+import sys
 
 def get_version():
     version_re = re.compile(r"^__version__ = '([\w_.]+)'$")

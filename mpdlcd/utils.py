@@ -100,4 +100,4 @@ def extract_pattern(fmt):
     except TypeError:
         # Formatting error
         pass
-    return fake.keys()
+    return list(fake.keys())
