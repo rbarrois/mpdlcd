@@ -46,26 +46,52 @@ class MPDHook(object):
 
     def __init__(self, **kwargs):
         super(MPDHook, self).__init__(**kwargs)
-        self.previous_key = None
+        self.previous_keys = {}
 
     def fetch(self, client):
         return None
 
-    def extract_key(self, data):
+    def extract_key(self, data, key=''):
         """Retrieve a simple identifier for data change detection.
 
         Can be used if the actual data is huge.
+
+        Args:
+            data (object), the data fetched by self.fetch()
+            key (str), the name of the key to fetch
+
+        Returns:
+            New value for the given key
         """
         return data
 
-    def handle(self, client):
-        new_data = self.fetch(client)
-        new_key = self.extract_key(new_data)
+    def handle(self, client, subhooks=()):
+        """Handle a new update.
 
-        if new_key != self.previous_key:
-            logger.debug(u"Hook %s: data changed from %r to %r:%r",
-                self.name, self.previous_key, new_key, new_data)
-            self.previous_key = new_key
+        Fetches new data from the client, then compares it to the previous
+        lookup.
+
+        Returns:
+            (bool, new_data): whether changes occurred, and the new value.
+        """
+        new_data = self.fetch(client)
+
+        # Holds the list of updated fields.
+        updated = {}
+
+        if not subhooks:
+            # We always want to compare to previous values.
+            subhooks = [self.name]
+
+        for subhook in subhooks:
+            new_key = self.extract_key(new_data, subhooks)
+            if new_key != self.previous_keys.get(subhook):
+                updated[subhook] = new_key
+
+        if updated:
+            logger.debug(u"Hook %s: data changed from %r to %r",
+                self.name, self.previous_keys, updated)
+            self.previous_keys.update(updated)
             return (True, new_data)
 
         return (False, None)
@@ -103,8 +129,11 @@ class SongHook(MPDHook):
     def fetch(self, client):
         return client.current_song
 
-    def extract_key(self, data):
+    def extract_key(self, data, key=''):
+        """Custom ``extract_key`` to detect when any watched field changed.
         current_song = data
         if not current_song:
             return None
-        return current_song.id
+        if not key:
+            return current_song.id
+        return getattr(current_song, key, '')

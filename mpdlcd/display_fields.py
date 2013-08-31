@@ -7,6 +7,8 @@
 import collections
 import logging
 
+from . import utils
+
 logger = logging.getLogger(__name__)
 
 
@@ -90,10 +92,16 @@ class Field(object):
         """Register hooks to be notified of field changes.
 
         Should return a list of fields whose information is watched.
+
+        Yields:
+            (str, set) tuples: the name of hooks of interest,
+                and the list of sub-hooks to watch in each.
         """
-        return self.target_hooks
+        for hook in self.target_hooks:
+            yield hook, set()
 
     def hook_changed(self, hook_name, widget, new_data):
+        """Handle a hook upate."""
         if hook_name == 'song':
             self.song_changed(widget, new_data)
         elif hook_name == 'state':
@@ -249,6 +257,7 @@ class SongField(Field):
 
     def __init__(self, format=u'', width=-1, speed=2, **kwargs):
         self.format = format
+        self.watched_fields = utils.extract_pattern(format)
         self.speed = int(speed)
         super(SongField, self).__init__(width=width, **kwargs)
 
@@ -256,6 +265,12 @@ class SongField(Field):
         return screen.add_scroller_widget(self.name,
             left=left, top=top, right=left + self.width - 1, bottom=top,
             speed=self.speed, text=' ' * self.width)
+
+    def register_hooks(self):
+        """Override: register watched_fields as subhooks of the 'song' hook."""
+        base_subhooks = dict(super(SongField, self).register_hooks())
+        base_subhooks['song'] |= set(self.watched_fields)
+        return base_subhooks.items()
 
     @classmethod
     def _song_dict(cls, song):

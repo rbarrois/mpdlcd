@@ -37,6 +37,7 @@ class ScreenPattern(object):
         self.widgets = {}
         self.field_registry = field_registry
         self.hooks = collections.defaultdict(lambda: [])
+        self.subhooks = collections.defaultdict(lambda: set())
 
     def parse(self):
         """Parse the lines, and fill self.line_fields accordingly."""
@@ -139,8 +140,9 @@ class ScreenPattern(object):
 
     def register_hooks(self, field):
         """Register a field on its target hooks."""
-        for hook in field.register_hooks():
+        for hook, subhooks in field.register_hooks():
             self.hooks[hook].append(field)
+            self.subhooks[hook] |= set(subhooks)
 
     def hook_changed(self, hook, new_data):
         """Called whenever the data for a hook changed."""

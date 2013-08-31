@@ -35,12 +35,8 @@ class MpdRunner(utils.AutoRetryCandidate):
         self.pattern = None
         self.screen = self.setup_screen(self.lcdproc_screen)
         self.hooks = {}
+        self.subhooks = {}
         self.client = client
-        self._previous = {
-            'song': None,
-            'elapsed_and_total': None,
-            'state': None,
-        }
 
     @utils.auto_retry
     def _connect_lcd(self):
@@ -69,14 +65,16 @@ class MpdRunner(utils.AutoRetryCandidate):
         self.setup_hooks(hook_registry)
 
     def setup_hooks(self, hook_registry):
-        for hook_name in self.pattern.active_hooks():
+        for hook_name, subhooks in self.pattern.active_hooks():
             hook = hook_registry.create(hook_name)
             self.hooks[hook_name] = hook
+            self.subhooks[hook_name] = subhooks
 
     @utils.auto_retry
     def update(self):
         for hook_name, hook in self.hooks.items():
-            updated, new_data = hook.handle(self.client)
+            subhooks = self.subhooks[hook_name]
+            updated, new_data = hook.handle(self.client, subhooks)
             if updated:
                 self.pattern.hook_changed(hook_name, new_data)
 
