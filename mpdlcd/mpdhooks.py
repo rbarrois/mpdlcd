@@ -23,7 +23,7 @@ class HookRegistry(object):
             cls._REGISTRY[name] = hook_class
         else:
             if cls._REGISTRY[name] != hook_class:
-                raise FieldRegistryError(
+                raise HookRegistryError(
                     "Cannot register two hooks with the same name.")
 
     def create(self, name, **kwargs):
@@ -130,7 +130,7 @@ class SongHook(MPDHook):
         return client.current_song
 
     def extract_key(self, data, key=''):
-        """Custom ``extract_key`` to detect when any watched field changed.
+        """Custom ``extract_key`` to detect when any watched field changed."""
         current_song = data
         if not current_song:
             return None
