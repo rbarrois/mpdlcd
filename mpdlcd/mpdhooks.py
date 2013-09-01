@@ -48,7 +48,7 @@ class MPDHook(object):
         super(MPDHook, self).__init__(**kwargs)
         self.previous_keys = {}
 
-    def fetch(self, client):
+    def fetch(self, client):  # pragma: no cover
         return None
 
     def extract_key(self, data, key=''):
@@ -84,7 +84,7 @@ class MPDHook(object):
             subhooks = [self.name]
 
         for subhook in subhooks:
-            new_key = self.extract_key(new_data, subhooks)
+            new_key = self.extract_key(new_data, subhook)
             if new_key != self.previous_keys.get(subhook):
                 updated[subhook] = new_key
 
@@ -134,6 +134,6 @@ class SongHook(MPDHook):
         current_song = data
         if not current_song:
             return None
-        if not key:
+        if key == self.name:
             return current_song.id
         return getattr(current_song, key, '')

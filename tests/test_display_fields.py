@@ -79,14 +79,10 @@ class FieldRegistryTestCase(unittest.TestCase):
     def test_register_field_decorator_noname(self):
         """The @register_field decorator fails when 'base_name' is missing."""
 
-        def failed_registration():
+        with self.assertRaises(AttributeError):
             @display_fields.register_field
             class SomeField(object):
-                def __init__(self, ref):
-                    self.ref = ref
-
-        self.assertRaises(AttributeError,
-            failed_registration)
+                """Fake field without a base_name."""
 
     def test_register_noname(self):
         """Registering without name should raise an error."""
@@ -132,5 +128,5 @@ class FieldRegistryTestCase(unittest.TestCase):
 
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     unittest.main()

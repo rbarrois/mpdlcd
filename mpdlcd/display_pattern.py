@@ -152,7 +152,7 @@ class ScreenPattern(object):
 
     def active_hooks(self):
         """Retrieve the list of active hooks."""
-        return list(self.hooks.keys())
+        return self.subhooks.items()
 
     def parse_line(self, line):
         """Parse a line of text.

@@ -28,5 +28,5 @@ class ExtractPatternTest(unittest.TestCase):
         self.assertEqual(['aa'], utils.extract_pattern('%(aa)s %d %(bbb)d'))
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     unittest.main()

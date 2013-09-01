@@ -4,12 +4,12 @@
 import sys
 
 
-if sys.version_info[:2] < (2, 7):
+if sys.version_info[:2] < (2, 7):  # pragma: no cover
     import unittest2 as unittest
-else:
+else:  # pragma: no cover
     import unittest
 
-if sys.version_info[0] >= 3:
+if sys.version_info[0] >= 3:  # pragma: no cover
     import unittest.mock as mock
-else:
+else:  # pragma: no cover
     import mock
