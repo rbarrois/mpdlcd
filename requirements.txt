@@ -1,0 +1,2 @@
+python_mpd2
+lcdproc

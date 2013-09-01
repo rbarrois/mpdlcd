@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2011-2013 Raphaël Barrois
 
-import unittest
+from .compat import unittest
 
 from mpdlcd import display_fields
 

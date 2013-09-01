@@ -2,67 +2,47 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2011-2013 Raphaël Barrois
 
-from distutils.core import setup
-from distutils import cmd
 import os
 import re
 import sys
 
-def get_version():
-    version_re = re.compile(r"^__version__ = '([\w_.]+)'$")
-    with open(os.path.join(os.path.dirname(__file__), 'mpdlcd', '__init__.py')) as f:
+from setuptools import setup
+
+root_dir = os.path.abspath(os.path.dirname(__file__))
+
+
+def get_version(package_name):
+    version_re = re.compile(r"^__version__ = [\"']([\w_.-]+)[\"']$")
+    package_components = package_name.split('.')
+    path_components = package_components + ['__init__.py']
+    with open(os.path.join(root_dir, *path_components)) as f:
         for line in f:
             match = version_re.match(line[:-1])
             if match:
                 return match.groups()[0]
-    return '0.0'
+    return '0.1.0'
 
 
-class test(cmd.Command):
-    """Run the tests for this package."""
-    command_name = 'test'
-    description = 'run the tests associated with the package'
+def parse_requirements(requirements_file):
+    with open(requirements_file, 'r') as f:
+        return [line for line in f if line.strip() and not line.startswith('#')]
 
-    user_options = [
-        ('test-suite=', None, "A test suite to run (defaults to 'tests')"),
-    ]
 
-    def initialize_options(self):
-        self.test_runner = None
-        self.test_suite = None
+if sys.version_info[0:2] < (2, 7):
+    extra_tests_require = ['unittest2', 'mock']
+elif sys.version_info[0] < 3:
+    extra_tests_require = ['mock']
+else:
+    extra_tests_require = []
 
-    def finalize_options(self):
-        self.ensure_string('test_suite', 'tests')
 
-    def run(self):
-        """Run the test suite."""
-        try:
-            import unittest2 as unittest
-        except ImportError:
-            import unittest
-
-        if self.verbose:
-            verbosity=1
-        else:
-            verbosity=0
-
-        loader = unittest.TestLoader()
-        suite = unittest.TestSuite()
-
-        if self.test_suite == 'tests':
-            for test_module in loader.discover('.'):
-                suite.addTest(test_module)
-        else:
-            suite.addTest(loader.loadTestsFromName(self.test_suite))
-
-        result = unittest.TextTestRunner(verbosity=verbosity).run(suite)
-        if not result.wasSuccessful():
-            sys.exit(1)
+PACKAGE = 'mpdlcd'
+REQUIREMENTS_PATH = 'requirements.txt'
 
 
 setup(
     name='mpdlcd',
-    version=get_version(),
+    version=get_version(PACKAGE),
     description="Display MPD status on a lcdproc server.",
     author='Raphaël Barrois',
     author_email='raphael.barrois+mpdlcd@polytechnique.org',
@@ -72,10 +52,11 @@ setup(
     packages=['mpdlcd'],
     scripts=['bin/mpdlcd'],
     license='MIT',
-    requires=[
-        'python_mpd2',
-        'lcdproc',
+    setup_requires=[
+        'setuptools>=0.8',
     ],
+    install_requires=parse_requirements(REQUIREMENTS_PATH),
+    tests_require=[] + extra_tests_require,
     classifiers=[
         'Development Status :: 4 - Beta',
         'Environment :: No Input/Output (Daemon)',
@@ -84,6 +65,6 @@ setup(
         'Programming Language :: Python',
         'Topic :: Multimedia :: Sound/Audio',
     ],
-    cmdclass={'test': test},
+    test_suite='tests',
 )
 
