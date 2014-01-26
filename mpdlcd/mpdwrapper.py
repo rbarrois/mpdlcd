@@ -38,9 +38,17 @@ class MPDClient(utils.AutoRetryCandidate):
         # Ref: http://www.musicpd.org/doc/protocol/ch01s02.html
         return unicode(text, 'utf8')
 
+    def _decode_text_or_list(self, text_or_list):
+        """Takes a 'text or list' and normalizes it to a UTF-8-decoded list."""
+        # mpd2._read_objects returns dicts whose values may be text or lists.
+        if isinstance(text_or_list, list):
+            return [self._decode_text(item) for item in text_or_list)
+        else:
+            return [self._decode_text(text_or_list)]
+
     def _decode_dict(self, data):
         return dict(
-            (k, self._decode_text(v)) for k, v in data.items())
+            (k, self._decode_text_or_list(v)) for k, v in data.items())
 
     @utils.auto_retry
     def connect(self):
@@ -152,7 +160,8 @@ class MPDSong(object):
     )
 
     def __init__(self, **kwargs):
-        self.tags = dict((k.lower(), v) for k, v in kwargs.items())
+        # Each tag may be multi-valued, keep only the first one.
+        self.tags = dict((k.lower(), v[0]) for k, v in kwargs.items())
         for tag in self.BASE_TAGS:
             self.tags[tag.name] = tag.get(self.tags)
 

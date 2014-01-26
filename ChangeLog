@@ -1,3 +1,10 @@
+0.3.4 (master)
+==============
+
+*Bugfix:*
+
+  - Properly handled multi-valued tags for songs.
+
 
 0.3.3 (2013-09-02)
 ==================
