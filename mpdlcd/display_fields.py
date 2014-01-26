@@ -251,6 +251,34 @@ class BitRateField(Field):
 
 
 @register_field
+class SamplingField(Field):
+    base_name = 'sampling'
+    target_hooks = ['status']
+
+    def _format_sampling(self, sampling='44100:16:2'):
+        rate = sampling.split(':')[0]
+        return '%0.1d' % float(rate)
+
+    def __init__(self, **kwargs):
+        width = len(self._format_sampling())
+        super(BitRateField, self).__init__(width=width, **kwargs)
+
+    def add_to_screen(self, screen, left, top):
+        return screen.add_string_widget(self.name,
+            self._format_sampling(), x=left, y=top)
+
+    def hook_changed(self, hook_name, widget, new_data):
+        if hook_name == 'status':
+            self.status_changed(widget, new_data)
+        super(SamplingField, self).hook_changed(hook_name, widget, new_data)
+
+    def status_changed(self, widget, new_status):
+        txt = self._format_sampling(new_status.get('audio') or '0:0:0')
+        logger.debug(u"Setting widget %r to %r", widget.ref, txt)
+        widget.set_text(txt)
+
+
+@register_field
 class SongField(Field):
     base_name = 'song'
     target_hooks = ['song']

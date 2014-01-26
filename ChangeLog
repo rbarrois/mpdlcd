@@ -1,9 +1,13 @@
-0.3.4 (master)
+0.4.0 (master)
 ==============
 
 *Bugfix:*
 
   - Properly handled multi-valued tags for songs.
+
+*New:*
+
+  - Allow display of ``{sampling}`` rate in ``kHz``
 
 
 0.3.3 (2013-09-02)
