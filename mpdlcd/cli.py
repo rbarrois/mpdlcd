@@ -2,12 +2,14 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2011-2013 Raphaël Barrois
 
+import collections
 import ConfigParser
 import logging
 from logging import handlers as logging_handlers
 import optparse
 import socket
 import time
+import urlparse
 import sys
 
 from . import lcdrunner
@@ -91,8 +93,12 @@ DEFAULT_PATTERNS = [
 logger = logging.getLogger('mpdlcd')
 
 
-def _make_hostport(conn, default_host, default_port):
-    """Convert a 'host:port' string to a (host, port) tuple.
+Connection = collections.namedtuple('Connection',
+    ['hostname', 'port', 'username', 'password'])
+
+
+def _make_hostport(conn, default_host, default_port, default_user='', default_password=None):
+    """Convert a '[user[:pass]@]host:port' string to a Connection tuple.
 
     If the given connection is empty, use defaults.
     If no port is given, use the default.
@@ -106,17 +112,13 @@ def _make_hostport(conn, default_host, default_port):
         (str, int): a (host, port) tuple.
     """
 
-    if not conn:
-        return default_host, default_port
-
-    parts = conn.split(':', 1)
-    host = parts[0]
-    if len(parts) == 1:
-        port = default_port
-    else:
-        port = parts[1]
-
-    return host, int(port)
+    parsed = urlparse.urlparse('//%s' % conn)
+    return Connection(
+        parsed.hostname or default_host,
+        parsed.port or default_port,
+        parsed.username if parsed.username is not None else default_user,
+        parsed.password if parsed.password is not None else default_password,
+    )
 
 
 def _make_lcdproc(lcd_host, lcd_port, retry_config,
@@ -185,7 +187,7 @@ def run_forever(lcdproc='', mpd='', lcdproc_screen=DEFAULT_LCD_SCREEN_NAME,
 
     Args:
         lcdproc (str): the target connection (host:port) for lcdproc
-        mpd (str): the target connection (host:port) for mpd
+        mpd (str): the target connection ([pwd@]host:port) for mpd
         lcdproc_screen (str): the name of the screen to use for lcdproc
         lcdproc_charset (str): the charset to use with lcdproc
         lcdd_debug (bool): whether to enable full LCDd debug
@@ -196,8 +198,8 @@ def run_forever(lcdproc='', mpd='', lcdproc_screen=DEFAULT_LCD_SCREEN_NAME,
         retry_backoff (int): increase to between-attempts delay
     """
     # Compute host/ports
-    lcd_host, lcd_port = _make_hostport(lcdproc, 'localhost', 13666)
-    mpd_host, mpd_port = _make_hostport(mpd, 'localhost', 6600)
+    lcd_conn = _make_hostport(lcdproc, 'localhost', 13666)
+    mpd_conn = _make_hostport(mpd, 'localhost', 6600)
 
     # Prepare auto-retry
     retry_config = utils.AutoRetryConfig(
@@ -206,11 +208,11 @@ def run_forever(lcdproc='', mpd='', lcdproc_screen=DEFAULT_LCD_SCREEN_NAME,
         retry_wait=retry_wait)
 
     # Setup MPD client
-    mpd_client = mpdwrapper.MPDClient(mpd_host, mpd_port,
+    mpd_client = mpdwrapper.MPDClient(mpd_conn.hostname, mpd_conn.port,
         retry_config=retry_config)
 
     # Setup LCDd client
-    lcd = _make_lcdproc(lcd_host, lcd_port, lcdd_debug=lcdd_debug,
+    lcd = _make_lcdproc(lcd_conn.hostname, lcd_conn.port, lcdd_debug=lcdd_debug,
         charset=lcdproc_charset, retry_config=retry_config)
 
     # Setup connector
@@ -356,7 +358,8 @@ def _setup_logging(syslog=False, syslog_facility=DEFAULT_SYSLOG_FACILITY,
         if syslog_address and syslog_address[0] == '/':
             address = syslog_address
         else:
-            address = _make_hostport(syslog_address, 'localhost', logging.SYSLOG_UDP_PORT)
+            syslog_conn = _make_hostport(syslog_address, 'localhost', logging.SYSLOG_UDP_PORT)
+            address = (syslog_conn.hostname, syslog_conn.port)
         handler = logging_handlers.SysLogHandler(address, facility=syslog_facility)
         handler.setFormatter(quiet_formatter)
 

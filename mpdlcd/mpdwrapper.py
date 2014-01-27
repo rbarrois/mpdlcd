@@ -26,12 +26,13 @@ class MPDConnectionError(MPDError):
 
 class MPDClient(utils.AutoRetryCandidate):
 
-    def __init__(self, host='localhost', port='6600', *args, **kwargs):
+    def __init__(self, host='localhost', port='6600', password=None, *args, **kwargs):
         super(MPDClient, self).__init__(*args, **kwargs)
         self._client = mpd.MPDClient()
         self._connected = False
         self.host = host
         self.port = port
+        self.password = password
 
     def _decode_text(self, text):
         # MPD protocol states that all data is UTF-8 encoded.
@@ -55,6 +56,8 @@ class MPDClient(utils.AutoRetryCandidate):
         if not self._connected:
             logger.info(u'Connecting to MPD server at %s:%s', self.host, self.port)
             self._client.connect(host=self.host, port=self.port)
+            if self.password:
+                self._client.password(self.password)
             self._connected = True
 
     @property
