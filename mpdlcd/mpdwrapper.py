@@ -43,7 +43,7 @@ class MPDClient(utils.AutoRetryCandidate):
         """Takes a 'text or list' and normalizes it to a UTF-8-decoded list."""
         # mpd2._read_objects returns dicts whose values may be text or lists.
         if isinstance(text_or_list, list):
-            return [self._decode_text(item) for item in text_or_list)
+            return [self._decode_text(item) for item in text_or_list]
         else:
             return [self._decode_text(text_or_list)]
 
