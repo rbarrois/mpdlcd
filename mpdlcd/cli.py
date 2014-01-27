@@ -208,8 +208,12 @@ def run_forever(lcdproc='', mpd='', lcdproc_screen=DEFAULT_LCD_SCREEN_NAME,
         retry_wait=retry_wait)
 
     # Setup MPD client
-    mpd_client = mpdwrapper.MPDClient(mpd_conn.hostname, mpd_conn.port,
-        retry_config=retry_config)
+    mpd_client = mpdwrapper.MPDClient(
+        host=mpd_conn.hostname,
+        port=mpd_conn.port,
+        password=mpd_conn.username,
+        retry_config=retry_config,
+    )
 
     # Setup LCDd client
     lcd = _make_lcdproc(lcd_conn.hostname, lcd_conn.port, lcdd_debug=lcdd_debug,
