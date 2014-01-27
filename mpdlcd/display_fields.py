@@ -257,7 +257,7 @@ class SamplingField(Field):
 
     def _format_sampling(self, sampling='44100:16:2'):
         rate = sampling.split(':')[0]
-        return '%0.1d' % float(rate)
+        return '%.1f' % float(rate)
 
     def __init__(self, **kwargs):
         width = len(self._format_sampling())
