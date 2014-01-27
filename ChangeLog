@@ -8,6 +8,7 @@
 *New:*
 
   - Allow display of ``{sampling}`` rate in ``kHz``
+  - Accept password for mpd, as ``--mpd=:PASSWORD@HOST:PORT`` connection string.
 
 
 0.3.3 (2013-09-02)
