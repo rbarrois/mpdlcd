@@ -175,7 +175,12 @@ class BaseTimeField(Field):
 
         minutes = seconds / 60
         seconds = seconds % 60
-        return '%02d:%02d' % (minutes, seconds)
+        if minutes > 99:
+            hours = minutes / 60
+            minutes = minutes % 60
+            return '%02dh%02d' % (hours, minutes)
+        else:
+            return '%02d:%02d' % (minutes, seconds)
 
     def add_to_screen(self, screen, left, top):
         return screen.add_string_widget(self.name, self._format_time(None),
