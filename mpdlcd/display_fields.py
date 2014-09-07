@@ -261,7 +261,7 @@ class SamplingField(Field):
 
     def __init__(self, **kwargs):
         width = len(self._format_sampling())
-        super(BitRateField, self).__init__(width=width, **kwargs)
+        super(SamplingField, self).__init__(width=width, **kwargs)
 
     def add_to_screen(self, screen, left, top):
         return screen.add_string_widget(self.name,
