@@ -58,6 +58,11 @@ class ScreenPattern(object):
             for field in fields:
                 self.widgets[field] = None
 
+    def add_pseudo_fields(self, fields, screen):
+        for field in fields:
+            self.widgets[field] = field.add_to_screen(screen, 0, 0)
+            self.register_hooks(field)
+
     @classmethod
     def compute_positions(cls, screen_width, line):
         """Compute the relative position of the fields on a given line.

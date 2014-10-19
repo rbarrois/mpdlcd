@@ -15,6 +15,7 @@ import socket
 import time
 import sys
 
+from . import enums
 from . import lcdrunner
 from . import mpdwrapper
 from . import display_fields
@@ -27,9 +28,11 @@ from . import __version__
 DEFAULT_CONFIG_FILE = '/etc/mpdlcd.conf'
 
 # Display
+
 DEFAULT_REFRESH = 0.5
 DEFAULT_LCD_SCREEN_NAME = 'MPD'
 DEFAULT_PATTERN = ''
+DEFAULT_BACKLIGHT_ON = enums.BACKLIGHT_ON_NEVER
 
 # Connection
 DEFAULT_MPD_PORT = 6600
@@ -52,6 +55,7 @@ BASE_CONFIG = {
         'refresh': ('float', DEFAULT_REFRESH),
         'lcdproc_screen': ('str', DEFAULT_LCD_SCREEN_NAME),
         'pattern': ('str', DEFAULT_PATTERN),
+        'backlight_on': ('str', DEFAULT_BACKLIGHT_ON),
     },
     'connections': {
         'mpd': ('str', 'localhost:%s' % DEFAULT_MPD_PORT),
@@ -184,6 +188,7 @@ def run_forever(lcdproc='', mpd='', lcdproc_screen=DEFAULT_LCD_SCREEN_NAME,
         lcdd_debug=False,
         pattern='', patterns=[],
         refresh=DEFAULT_REFRESH,
+        backlight_on=DEFAULT_BACKLIGHT_ON,
         retry_attempts=DEFAULT_RETRY_ATTEMPTS,
         retry_wait=DEFAULT_RETRY_WAIT,
         retry_backoff=DEFAULT_RETRY_BACKOFF):
@@ -198,6 +203,7 @@ def run_forever(lcdproc='', mpd='', lcdproc_screen=DEFAULT_LCD_SCREEN_NAME,
         pattern (str): the pattern to use
         patterns (str list): the patterns to use
         refresh (float): how often to refresh the display
+        backlight_on (str): the rules for activating backlight
         retry_attempts (int): number of connection attempts
         retry_wait (int): time between connection attempts
         retry_backoff (int): increase to between-attempts delay
@@ -229,6 +235,7 @@ def run_forever(lcdproc='', mpd='', lcdproc_screen=DEFAULT_LCD_SCREEN_NAME,
         lcdproc_screen=lcdproc_screen,
         refresh_rate=refresh,
         retry_config=retry_config,
+        backlight_on=backlight_on,
     )
 
     # Fill pattern
@@ -288,6 +295,11 @@ def _make_parser():
             help='Register the SCREEN_NAME lcdproc screen for mpd status '
             '(default: %s)' % DEFAULT_LCD_SCREEN_NAME,
             metavar='SCREEN_NAME')
+    group.add_option('--backlight-on', dest='backlight_on',
+            help="Activate backlight always|never|in play mode|in play/pause mode (default: %s)" %
+            DEFAULT_BACKLIGHT_ON,
+            choices=enums.BACKLIGHT_ON_CHOICES,
+            metavar='BACKLIGHT_ON')
 
     # End display options
     parser.add_option_group(group)
@@ -480,6 +492,6 @@ def main(argv):
         'logfile', 'loglevel', 'debug'))
     run_forever(**_extract_options(base_config, options,
         'lcdproc', 'mpd', 'lcdproc_charset', 'lcdproc_screen', 'lcdd_debug',
-        'refresh',
+        'refresh', 'backlight_on',
         'pattern', 'patterns',
         'retry_attempts', 'retry_backoff', 'retry_wait'))

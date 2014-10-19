@@ -7,6 +7,7 @@
 import collections
 import logging
 
+from . import enums
 from . import utils
 
 logger = logging.getLogger(__name__)
@@ -160,6 +161,34 @@ class StateField(Field):
         name = MPD_TO_LCDD_MAP.get(new_state, MPD_STOP)
         logger.debug(u'Setting widget %s to %r', widget.ref, name)
         widget.set_name(name)
+
+
+class BacklightPseudoField(Field):
+    base_name = 'backlight'
+    target_hooks = ['state']
+
+    def __init__(self, backlight_rule, **kwargs):
+        self.backlight_rule=backlight_rule
+        self._screen = None
+        super(BacklightPseudoField, self).__init__(width=0, **kwargs)
+
+    def add_to_screen(self, screen, left, top):
+        self._screen = screen
+
+    def state_changed(self, widget, new_state):
+        if self.backlight_rule == enums.BACKLIGHT_ON_ALWAYS:
+            backlight_on = True
+        elif self.backlight_rule == enums.BACKLIGHT_ON_NEVER:
+            backlight_on = False
+        elif self.backlight_rule == enums.BACKLIGHT_ON_PLAY:
+            backlight_on = bool(new_state == MPD_PLAY)
+        elif self.backlight_rule == enums.BACKLIGHT_ON_PLAYPAUSE:
+            backlight_on = bool(new_state in [MPD_PLAY, MPD_PAUSE])
+        else:
+            backlight_on = False
+        backlight = 'on' if backlight_on else 'off'
+        logger.debug(u"Setting backlight to %s", backlight)
+        self._screen.set_backlight(backlight)
 
 
 class BaseTimeField(Field):

@@ -178,6 +178,13 @@ Read configuration from the given file instead of the default
 The refresh rate for the display (float).
 Queries will be sent to the MPD at this rate.
 .
+.\" --backlight-on
+.TP
+.BI \-\^\-backlight-on " [always|never|play|playpause]"
+Decides when the LCD's backlight should be enabled.
+ 'always' means "always on", 'never' "always off", 'play' is for "on while playing"
+ and 'playpause' for "on while playing or paused".
+.
 .\" --pattern
 .TP
 .BI \-\^\-pattern " PATTERN"

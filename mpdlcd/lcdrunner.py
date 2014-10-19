@@ -7,7 +7,9 @@ import time
 
 from lcdproc import server
 
-from mpdlcd import utils
+from . import display_fields
+from . import enums
+from . import utils
 
 
 logger = logging.getLogger(__name__)
@@ -43,11 +45,12 @@ class LcdProcServer(server.Server):
 
 
 class MpdRunner(utils.AutoRetryCandidate):
-    def __init__(self, client, lcd, lcdproc_screen, refresh_rate, *args, **kwargs):
+    def __init__(self, client, lcd, lcdproc_screen, refresh_rate, backlight_on, *args, **kwargs):
         super(MpdRunner, self).__init__(logger=logger, *args, **kwargs)
 
         self.lcd = lcd
         self.lcdproc_screen = lcdproc_screen
+        self.backlight_on = backlight_on
         self.refresh_rate = refresh_rate
 
         # Make sure we can connect - no need to go further otherwise.
@@ -78,9 +81,20 @@ class MpdRunner(utils.AutoRetryCandidate):
         logger.info(u'%s screen added to lcdproc.', screen_name)
         return screen
 
+    def add_pseudo_fields(self):
+        """Add 'pseudo' fields (e.g non-displayed fields) to the display."""
+        fields = []
+        if self.backlight_on != enums.BACKLIGHT_ON_NEVER:
+            fields.append(
+                display_fields.BacklightPseudoField(ref='0', backlight_rule=self.backlight_on)
+            )
+
+        self.pattern.add_pseudo_fields(fields, self.screen)
+
     def setup_pattern(self, patterns, hook_registry):
         self.pattern = patterns[self.screen.height]
         self.pattern.parse()
+        self.add_pseudo_fields()
         self.pattern.add_to_screen(self.screen.width, self.screen)
         self.setup_hooks(hook_registry)
 
