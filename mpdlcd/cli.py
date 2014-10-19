@@ -183,6 +183,7 @@ def run_forever(lcdproc='', mpd='', lcdproc_screen=DEFAULT_LCD_SCREEN_NAME,
         lcdproc_charset=DEFAULT_LCDPROC_CHARSET,
         lcdd_debug=False,
         pattern='', patterns=[],
+        refresh=DEFAULT_REFRESH,
         retry_attempts=DEFAULT_RETRY_ATTEMPTS,
         retry_wait=DEFAULT_RETRY_WAIT,
         retry_backoff=DEFAULT_RETRY_BACKOFF):
@@ -196,6 +197,7 @@ def run_forever(lcdproc='', mpd='', lcdproc_screen=DEFAULT_LCD_SCREEN_NAME,
         lcdd_debug (bool): whether to enable full LCDd debug
         pattern (str): the pattern to use
         patterns (str list): the patterns to use
+        refresh (float): how often to refresh the display
         retry_attempts (int): number of connection attempts
         retry_wait (int): time between connection attempts
         retry_backoff (int): increase to between-attempts delay
@@ -223,8 +225,11 @@ def run_forever(lcdproc='', mpd='', lcdproc_screen=DEFAULT_LCD_SCREEN_NAME,
         charset=lcdproc_charset, retry_config=retry_config)
 
     # Setup connector
-    runner = lcdrunner.MpdRunner(mpd_client, lcd, lcdproc_screen=lcdproc_screen,
-        retry_config=retry_config)
+    runner = lcdrunner.MpdRunner(mpd_client, lcd,
+        lcdproc_screen=lcdproc_screen,
+        refresh_rate=refresh,
+        retry_config=retry_config,
+    )
 
     # Fill pattern
     if pattern:
@@ -475,4 +480,6 @@ def main(argv):
         'logfile', 'loglevel', 'debug'))
     run_forever(**_extract_options(base_config, options,
         'lcdproc', 'mpd', 'lcdproc_charset', 'lcdproc_screen', 'lcdd_debug',
-        'pattern', 'patterns', 'retry_attempts', 'retry_backoff', 'retry_wait'))
+        'refresh',
+        'pattern', 'patterns',
+        'retry_attempts', 'retry_backoff', 'retry_wait'))

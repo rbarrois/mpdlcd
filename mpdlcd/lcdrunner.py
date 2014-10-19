@@ -43,11 +43,12 @@ class LcdProcServer(server.Server):
 
 
 class MpdRunner(utils.AutoRetryCandidate):
-    def __init__(self, client, lcd, lcdproc_screen, *args, **kwargs):
+    def __init__(self, client, lcd, lcdproc_screen, refresh_rate, *args, **kwargs):
         super(MpdRunner, self).__init__(logger=logger, *args, **kwargs)
 
         self.lcd = lcd
         self.lcdproc_screen = lcdproc_screen
+        self.refresh_rate = refresh_rate
 
         # Make sure we can connect - no need to go further otherwise.
         self._connect_lcd()
@@ -106,7 +107,7 @@ class MpdRunner(utils.AutoRetryCandidate):
         try:
             while True:
                 self.update()
-                time.sleep(0.5)
+                time.sleep(self.refresh_rate)
         except (KeyboardInterrupt, SystemExit):
             pass
         except Exception as e:
