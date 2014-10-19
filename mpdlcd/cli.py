@@ -2,14 +2,17 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2011-2013 Raphaël Barrois
 
+from __future__ import print_function
+
+from .compat import configparser
+from .compat import urllib_parse
+
 import collections
-import ConfigParser
 import logging
 from logging import handlers as logging_handlers
 import optparse
 import socket
 import time
-import urlparse
 import sys
 
 from . import lcdrunner
@@ -112,7 +115,7 @@ def _make_hostport(conn, default_host, default_port, default_user='', default_pa
         (str, int): a (host, port) tuple.
     """
 
-    parsed = urlparse.urlparse('//%s' % conn)
+    parsed = urllib_parse.urlparse('//%s' % conn)
     return Connection(
         parsed.hostname or default_host,
         parsed.port or default_port,
@@ -393,12 +396,12 @@ def _setup_logging(syslog=False, syslog_facility=DEFAULT_SYSLOG_FACILITY,
 def _read_config(filename):
     """Read configuration from the given file.
 
-    Parsing is performed through the ConfigParser library.
+    Parsing is performed through the configparser library.
 
     Returns:
         dict: a flattened dict of (option_name, value), using defaults.
     """
-    parser = ConfigParser.RawConfigParser()
+    parser = configparser.RawConfigParser()
     if filename and not parser.read(filename):
         sys.stderr.write(
             u"Unable to open configuration file %s. Use --config='' to disable "
@@ -436,14 +439,14 @@ def _read_config(filename):
 
 
 def _extract_options(config, options, *args):
-    """Extract options values from a ConfigParser, optparse pair.
+    """Extract options values from a configparser, optparse pair.
 
     Options given on command line take precedence over options read in the
     configuration file.
 
     Args:
         config (dict): option values read from a config file through
-            ConfigParser
+            configparser
         options (optparse.Options): optparse 'options' object containing options
             values from the command line
         *args (str tuple): name of the options to extract
@@ -464,8 +467,8 @@ def main(argv):
     options, args = parser.parse_args(argv)
     base_config = _read_config(options.config)
     if options.loglevel == 'debug':
-        print "Base config: %s" % base_config
-        print "With overrides: %s" % _extract_options(base_config, options, *base_config.keys())
+        print("Base config: %s" % base_config)
+        print("With overrides: %s" % _extract_options(base_config, options, *base_config.keys()))
 
     _setup_logging(**_extract_options(base_config, options,
         'syslog', 'syslog_facility', 'syslog_address',
