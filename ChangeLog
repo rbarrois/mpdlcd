@@ -1,3 +1,10 @@
+0.4.2 (2015-05-11)
+==================
+
+*Packaging:*
+
+  - Document missing dependency on ``unicodedata``
+
 0.4.1 (2015-01-11)
 ==================
 

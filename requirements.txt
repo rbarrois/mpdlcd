@@ -1,2 +1,3 @@
 python_mpd2
 lcdproc
+unicodedata2
