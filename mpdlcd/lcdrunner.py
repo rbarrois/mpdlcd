@@ -4,6 +4,7 @@
 import datetime
 import logging
 import time
+import unicodedata
 
 from lcdproc import server
 
