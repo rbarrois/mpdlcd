@@ -241,6 +241,8 @@ def run_forever(lcdproc='', mpd='', lcdproc_screen=DEFAULT_LCD_SCREEN_NAME,
         refresh_rate=refresh,
         retry_config=retry_config,
         backlight_on=backlight_on,
+        priority_backlight_on=priority_backlight_on,
+        priority_backlight_off=priority_backlight_off,
     )
 
     # Fill pattern

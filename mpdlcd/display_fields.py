@@ -190,6 +190,27 @@ class BacklightPseudoField(Field):
         logger.debug(u"Setting backlight to %s", backlight)
         self._screen.set_backlight(backlight)
 
+class PriorityPseudoField(Field):
+    base_name = 'priority'
+    target_hooks = ['state']
+
+    def __init__(self, priority_playing, priority_not_playing, **kwargs):
+        self.priority_playing=priority_playing
+        self.priority_not_playing=priority_not_playing
+        self._screen = None
+        super(PriorityPseudoField, self).__init__(width=0, **kwargs)
+
+    def add_to_screen(self, screen, left, top):
+        self._screen = screen
+
+    def state_changed(self, widget, new_state):
+        if new_state == MPD_PLAY:
+            priority = self.priority_playing
+        else:
+            priority = self.priority_not_playing
+        logger.debug(u"Setting priority to %s", priority)
+        self._screen.set_priority(priority)
+
 
 class BaseTimeField(Field):
     target_hooks = ['state', 'elapsed_and_total']
