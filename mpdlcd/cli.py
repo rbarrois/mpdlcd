@@ -57,8 +57,8 @@ BASE_CONFIG = {
         'lcdproc_screen': ('str', DEFAULT_LCD_SCREEN_NAME),
         'pattern': ('str', DEFAULT_PATTERN),
         'backlight_on': ('str', DEFAULT_BACKLIGHT_ON),
-        'priority_backlight_on': ('str', DEFAULT_PRIORITY),
-        'priority_backlight_off': ('str', DEFAULT_PRIORITY),
+        'priority_playing': ('str', DEFAULT_PRIORITY),
+        'priority_not_playing': ('str', DEFAULT_PRIORITY),
     },
     'connections': {
         'mpd': ('str', 'localhost:%s' % DEFAULT_MPD_PORT),
@@ -192,8 +192,8 @@ def run_forever(lcdproc='', mpd='', lcdproc_screen=DEFAULT_LCD_SCREEN_NAME,
         pattern='', patterns=[],
         refresh=DEFAULT_REFRESH,
         backlight_on=DEFAULT_BACKLIGHT_ON,
-        priority_backlight_on=DEFAULT_PRIORITY,
-        priority_backlight_off=DEFAULT_PRIORITY,
+        priority_playing=DEFAULT_PRIORITY,
+        priority_not_playing=DEFAULT_PRIORITY,
         retry_attempts=DEFAULT_RETRY_ATTEMPTS,
         retry_wait=DEFAULT_RETRY_WAIT,
         retry_backoff=DEFAULT_RETRY_BACKOFF):
@@ -241,8 +241,8 @@ def run_forever(lcdproc='', mpd='', lcdproc_screen=DEFAULT_LCD_SCREEN_NAME,
         refresh_rate=refresh,
         retry_config=retry_config,
         backlight_on=backlight_on,
-        priority_backlight_on=priority_backlight_on,
-        priority_backlight_off=priority_backlight_off,
+        priority_playing=priority_playing,
+        priority_not_playing=priority_not_playing,
     )
 
     # Fill pattern
@@ -307,12 +307,12 @@ def _make_parser():
             DEFAULT_BACKLIGHT_ON,
             choices=enums.BACKLIGHT_ON_CHOICES,
             metavar='BACKLIGHT_ON')
-    group.add_option('--priority-backlight-on', dest='priority-backlight_on',
-            help="Screen priority when backlight on (default: %s)" % DEFAULT_PRIORITY,
-            metavar='PRIORITY_BACKLIGHT_ON')
-    group.add_option('--priority-backlight-off', dest='priority-backlight_off',
-            help="Screen priority when backlight off (default: %s)" % DEFAULT_PRIORITY,
-            metavar='PRIORITY_BACKLIGHT_OFF')
+    group.add_option('--priority-playing', dest='priority_playing',
+            help="Screen priority when music is playing (default: %s)" % DEFAULT_PRIORITY,
+            metavar='PRIORITY_PLAYING')
+    group.add_option('--priority-not-playing', dest='priority_not_playing',
+            help="Screen priority when music is not playing (default: %s)" % DEFAULT_PRIORITY,
+            metavar='PRIORITY_NOT_PLAYING')
 
     # End display options
     parser.add_option_group(group)
@@ -506,6 +506,6 @@ def main(argv):
     run_forever(**_extract_options(base_config, options,
         'lcdproc', 'mpd', 'lcdproc_charset', 'lcdproc_screen', 'lcdd_debug',
         'refresh', 'backlight_on',
-        'priority_backlight_on', 'priority_backlight_off',
+        'priority_playing', 'priority_not_playing',
         'pattern', 'patterns',
         'retry_attempts', 'retry_backoff', 'retry_wait'))
