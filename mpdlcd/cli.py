@@ -33,6 +33,7 @@ DEFAULT_REFRESH = 0.5
 DEFAULT_LCD_SCREEN_NAME = 'MPD'
 DEFAULT_PATTERN = ''
 DEFAULT_BACKLIGHT_ON = enums.BACKLIGHT_ON_NEVER
+DEFAULT_PRIORITY = 'foreground'
 
 # Connection
 DEFAULT_MPD_PORT = 6600
@@ -56,6 +57,8 @@ BASE_CONFIG = {
         'lcdproc_screen': ('str', DEFAULT_LCD_SCREEN_NAME),
         'pattern': ('str', DEFAULT_PATTERN),
         'backlight_on': ('str', DEFAULT_BACKLIGHT_ON),
+        'priority_backlight_on': ('str', DEFAULT_PRIORITY),
+        'priority_backlight_off': ('str', DEFAULT_PRIORITY),
     },
     'connections': {
         'mpd': ('str', 'localhost:%s' % DEFAULT_MPD_PORT),
@@ -189,6 +192,8 @@ def run_forever(lcdproc='', mpd='', lcdproc_screen=DEFAULT_LCD_SCREEN_NAME,
         pattern='', patterns=[],
         refresh=DEFAULT_REFRESH,
         backlight_on=DEFAULT_BACKLIGHT_ON,
+        priority_backlight_on=DEFAULT_PRIORITY,
+        priority_backlight_off=DEFAULT_PRIORITY,
         retry_attempts=DEFAULT_RETRY_ATTEMPTS,
         retry_wait=DEFAULT_RETRY_WAIT,
         retry_backoff=DEFAULT_RETRY_BACKOFF):
@@ -300,6 +305,12 @@ def _make_parser():
             DEFAULT_BACKLIGHT_ON,
             choices=enums.BACKLIGHT_ON_CHOICES,
             metavar='BACKLIGHT_ON')
+    group.add_option('--priority-backlight-on', dest='priority-backlight_on',
+            help="Screen priority when backlight on (default: %s)" % DEFAULT_PRIORITY,
+            metavar='PRIORITY_BACKLIGHT_ON')
+    group.add_option('--priority-backlight-off', dest='priority-backlight_off',
+            help="Screen priority when backlight off (default: %s)" % DEFAULT_PRIORITY,
+            metavar='PRIORITY_BACKLIGHT_OFF')
 
     # End display options
     parser.add_option_group(group)
@@ -493,5 +504,6 @@ def main(argv):
     run_forever(**_extract_options(base_config, options,
         'lcdproc', 'mpd', 'lcdproc_charset', 'lcdproc_screen', 'lcdd_debug',
         'refresh', 'backlight_on',
+        'priority_backlight_on', 'priority_backlight_off',
         'pattern', 'patterns',
         'retry_attempts', 'retry_backoff', 'retry_wait'))
