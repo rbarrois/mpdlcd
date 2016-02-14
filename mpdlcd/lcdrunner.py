@@ -46,12 +46,14 @@ class LcdProcServer(server.Server):
 
 
 class MpdRunner(utils.AutoRetryCandidate):
-    def __init__(self, client, lcd, lcdproc_screen, refresh_rate, backlight_on, *args, **kwargs):
+    def __init__(self, client, lcd, lcdproc_screen, refresh_rate, backlight_on, priority_playing, priority_not_playing, *args, **kwargs):
         super(MpdRunner, self).__init__(logger=logger, *args, **kwargs)
 
         self.lcd = lcd
         self.lcdproc_screen = lcdproc_screen
         self.backlight_on = backlight_on
+        self.priority_playing = priority_playing
+        self.priority_not_playing = priority_not_playing
         self.refresh_rate = refresh_rate
 
         # Make sure we can connect - no need to go further otherwise.
@@ -70,7 +72,7 @@ class MpdRunner(utils.AutoRetryCandidate):
         logger.debug(u'Adding lcdproc screen %s', screen_name)
         screen = self.lcd.add_screen(screen_name)
         screen.set_heartbeat('off')
-        screen.set_priority(64)
+        screen.set_priority(self.priority_playing)
 
         width = self.lcd.server_info['screen_width']
         height = self.lcd.server_info['screen_height']
@@ -89,6 +91,10 @@ class MpdRunner(utils.AutoRetryCandidate):
             fields.append(
                 display_fields.BacklightPseudoField(ref='0', backlight_rule=self.backlight_on)
             )
+
+        fields.append(
+            display_fields.PriorityPseudoField(ref='0', priority_playing=self.priority_playing, priority_not_playing=self.priority_not_playing)
+        )
 
         self.pattern.add_pseudo_fields(fields, self.screen)
 
