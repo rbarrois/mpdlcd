@@ -6,12 +6,18 @@ script:
   - make test
 
 install:
-  - pip install -r requirements.txt
+  - make update
 
 matrix:
   include:
-    - python: "3.5"
-    - python: "3.6"
+    - name: "Python 3.5"
+      python: 3.5
+    - name: "Python 3.6"
+      python: 3.6
+    - name: "Linting"
+      python: 3.6
+      script:
+        - make lint
 
 notifications:
   email: false
