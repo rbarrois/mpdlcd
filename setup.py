@@ -6,7 +6,7 @@ import os
 import re
 import sys
 
-from setuptools import setup
+from setuptools import find_packages, setup
 
 root_dir = os.path.abspath(os.path.dirname(__file__))
 
@@ -36,7 +36,7 @@ setup(
     url='http://github.com/rbarrois/mpdlcd',
     download_url="http://pypi.python.org/pypi/mpdlcd/",
     keywords=['MPD', 'lcdproc', 'lcd'],
-    packages=['mpdlcd'],
+    packages=find_packages(exclude=['tests']),
     scripts=['bin/mpdlcd'],
     license='MIT',
     setup_requires=[
