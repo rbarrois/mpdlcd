@@ -1,5 +1,4 @@
 #!/usr/bin/python
-# -*- coding: utf-8 -*-
 # Copyright (c) 2011-2015 Raphaël Barrois
 
 import codecs
@@ -24,21 +23,7 @@ def get_version(package_name):
     return '0.1.0'
 
 
-def parse_requirements(requirements_file):
-    with codecs.open(requirements_file, 'r', 'utf-8') as f:
-        return [line for line in f if line.strip() and not line.startswith('#')]
-
-
-if sys.version_info[0:2] < (2, 7):
-    extra_tests_require = ['unittest2', 'mock']
-elif sys.version_info[0] < 3:
-    extra_tests_require = ['mock']
-else:
-    extra_tests_require = []
-
-
 PACKAGE = 'mpdlcd'
-REQUIREMENTS_PATH = 'requirements.txt'
 
 
 setup(
@@ -56,14 +41,17 @@ setup(
     setup_requires=[
         'setuptools>=0.8',
     ],
-    install_requires=parse_requirements(REQUIREMENTS_PATH),
-    tests_require=[] + extra_tests_require,
+    install_requires=[
+        'lcdproc',
+        'python_mpd2',
+    ],
+    tests_require=[],
     classifiers=[
         'Development Status :: 4 - Beta',
         'Environment :: No Input/Output (Daemon)',
         'Intended Audience :: End Users/Desktop',
         'Operating System :: OS Independent',
-        'Programming Language :: Python',
+        'Programming Language :: Python :: 3 :: Only',
         'Topic :: Multimedia :: Sound/Audio',
     ],
     test_suite='tests',

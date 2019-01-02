@@ -1,0 +1,6 @@
+-e .
+
+check-manifest
+coverage
+flake8
+zest.releaser[recommended]

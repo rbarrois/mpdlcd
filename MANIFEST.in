@@ -1,8 +1,20 @@
-include LICENSE
-include README.rst
-include ChangeLog
-include initd/*
+# Doc
+include ChangeLog LICENSE README.rst
 include man/*
-include mpdlcd.conf
-include requirements.txt
-recursive-include tests *.py
+
+# Packaging
+include initd/* mpdlcd.conf
+
+# Build/test
+include Makefile .flake8
+include requirements_dev.txt
+
+# Package
+graft mpdlcd
+graft tests
+
+# Remove temporary files
+global-exclude *.py[cod] __pycache__ *.so .*.sw[op]
+
+# Remove files useless in a sdist
+exclude .travis.yml

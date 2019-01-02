@@ -1,2 +1,0 @@
--r dev_requirements.txt
-mock

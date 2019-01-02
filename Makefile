@@ -1,24 +1,46 @@
+PACKAGE = mpdlcd
+TESTS_DIR = tests
+
+FLAKE8 = flake8
+
+
+# Default targets
+# ===============
+
 all: default
-
-
-PACKAGE=mpdlcd
-
-
 default:
 
+.PHONY: all default
+
+
+# Packaging
+# =========
 
 clean:
 	find . -type f -name '*.pyc' -delete
+	find . -type f -path '*/__pycache__/*' -delete
+	find . -type d -empty -delete
 
+update:
+	pip install --upgrade pip setuptools
+	pip install --upgrade -r requirements_dev.txt
+	pip freeze
+
+release:
+	fullrelease
+
+.PHONY: clean update release
+
+
+# Tests and quality
+# =================
 
 test:
 	python -W default setup.py test
 
-coverage:
-	coverage erase
-	coverage run "--include=$(PACKAGE)/*.py,tests/*.py" --branch setup.py test
-	coverage report "--include=$(PACKAGE)/*.py,tests/*.py"
-	coverage html "--include=$(PACKAGE)/*.py,tests/*.py"
+lint:
+	$(FLAKE8) --config .flake8 $(PACKAGE)
+	check-manifest
 
 
-.PHONY: all default clean coverage doc test
+.PHONY: test lint
