@@ -3,7 +3,6 @@
 
 import logging
 import time
-import unicodedata
 
 from .vendor.lcdproc import server
 
@@ -16,32 +15,8 @@ logger = logging.getLogger(__name__)
 
 
 class LcdProcServer(server.Server):
-    def __init__(self, hostname, port, charset, *args, **kwargs):
-        super(LcdProcServer, self).__init__(hostname, port, *args, **kwargs)
-        self.charset = charset
-
-    def _normalize_char(self, char):
-        """Normalize a character according to the LCD charset.
-
-        If the char exists in the charset, don't change it;
-        otherwise, normalize it to ascii.
-
-        Takes a unicode char, returns a unicode char.
-        """
-        try:
-            char.encode(self.charset)
-            return char
-        except UnicodeEncodeError:
-            return (
-                unicodedata.normalize('NFKD', char)
-                .encode('ascii', 'ignore')
-                .decode('ascii')
-            )
-
-    def encode(self, text):
-        """Helper to handle server-specific text encoding."""
-        normalized_text = ''.join(self._normalize_char(char) for char in text)
-        return normalized_text.encode(self.charset)
+    def __init__(self, hostname, port, **kwargs):
+        super(LcdProcServer, self).__init__(hostname, port, **kwargs)
 
 
 class MpdRunner(utils.AutoRetryCandidate):

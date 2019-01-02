@@ -127,7 +127,7 @@ class Field(object):
             widget (lcdproc.Widget): widget whose text should be set
             text (unicode): text to set
         """
-        widget.set_text(widget.screen.server.encode(text))
+        widget.set_text(text)
 
     def __repr__(self):
         return '<Field %s (%d)>' % (self.name, self.width)
@@ -142,7 +142,7 @@ class FixedText(Field):
         self.text = text
 
     def add_to_screen(self, screen, left, top):
-        return screen.add_string_widget(self.name, screen.server.encode(self.text), left, top)
+        return screen.add_string_widget(self.name, self.text, left, top)
 
 
 @register_field

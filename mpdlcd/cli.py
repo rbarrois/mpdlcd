@@ -150,7 +150,7 @@ def _make_lcdproc(
         @utils.auto_retry
         def connect(self):
             return lcdrunner.LcdProcServer(
-                lcd_host, lcd_port, charset, debug=lcdd_debug)
+                lcd_host, lcd_port, charset=charset, debug=lcdd_debug)
 
     spawner = ServerSpawner(retry_config=retry_config, logger=logger)
 

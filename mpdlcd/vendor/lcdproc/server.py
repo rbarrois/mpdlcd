@@ -24,6 +24,7 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import telnetlib
+import unicodedata
 import urllib.parse
 import select
 
@@ -33,13 +34,14 @@ from .screen import Screen
 class Server(object):
     """ LCDproc Server Object """
 
-    def __init__(self, hostname="localhost", port=13666, debug=False):
+    def __init__(self, hostname="localhost", port=13666, debug=False, charset='utf-8'):
         """ Constructor """
 
         self.debug = debug
         self.hostname = hostname
         self.port = port
         self.tn = telnetlib.Telnet(self.hostname, self.port)
+        self.charset = charset
         self.server_info = dict()
         self.screens = dict()
         self.keys = list()
@@ -59,10 +61,31 @@ class Server(object):
         })
         return response
 
+    def encode(self, txt):
+        def _failsafe_encode(char):
+            try:
+                return char.encode(self.charset)
+            except UnicodeEncodeError:
+                return (
+                    unicodedata.normalize('NFKD', char)
+                    .encode('ascii', 'ignore')
+                    .decode('ascii')
+                    .encode(self.charset)
+                )
+
+        try:
+            return txt.encode(self.charset)
+        except UnicodeEncodeError:
+            return b''.join(_failsafe_encode(char) for char in txt)
+
+    def send(self, command):
+        encoded = self.encode(command + '\n')
+        self.tn.write(encoded)
+
     def request(self, command_string):
         """ Request """
 
-        self.tn.write((command_string + "\n").encode())
+        self.send(command_string)
         if self.debug:
             print("Telnet Request:  %s" % (command_string))
         while True:
@@ -150,7 +173,7 @@ class Server(object):
 
         Return None or LCDd response on error
         """
-        response = self.request(("output %s" % (value)).encode())
+        response = self.request("output %s" % (value))
         if "success" in response:
             return None
         else:
