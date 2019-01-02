@@ -41,7 +41,7 @@ class LcdProcServer(server.Server):
 
     def encode(self, text):
         """Helper to handle server-specific text encoding."""
-        normalized_text = u''.join(self._normalize_char(char) for char in text)
+        normalized_text = ''.join(self._normalize_char(char) for char in text)
         return normalized_text.encode(self.charset)
 
 
@@ -69,19 +69,19 @@ class MpdRunner(utils.AutoRetryCandidate):
         self.lcd.start_session()
 
     def setup_screen(self, screen_name):
-        logger.debug(u'Adding lcdproc screen %s', screen_name)
+        logger.debug('Adding lcdproc screen %s', screen_name)
         screen = self.lcd.add_screen(screen_name)
         screen.set_heartbeat('off')
         screen.set_priority(self.priority_playing)
 
         width = self.lcd.server_info['screen_width']
         height = self.lcd.server_info['screen_height']
-        logger.info(u'LCD screen is %dx%d', width, height)
+        logger.info('LCD screen is %dx%d', width, height)
 
         screen.set_width(width)
         screen.set_height(height)
 
-        logger.info(u'%s screen added to lcdproc.', screen_name)
+        logger.info('%s screen added to lcdproc.', screen_name)
         return screen
 
     def add_pseudo_fields(self):
@@ -120,11 +120,11 @@ class MpdRunner(utils.AutoRetryCandidate):
                 self.pattern.hook_changed(hook_name, new_data)
 
     def quit(self):
-        logger.info(u'Exiting: removing screen %s', self.lcdproc_screen)
+        logger.info('Exiting: removing screen %s', self.lcdproc_screen)
         self.lcd.del_screen(self.lcdproc_screen)
 
     def run(self):
-        logger.info(u'Starting update loop.')
+        logger.info('Starting update loop.')
         try:
             while True:
                 self.update()
@@ -132,6 +132,6 @@ class MpdRunner(utils.AutoRetryCandidate):
         except (KeyboardInterrupt, SystemExit):
             pass
         except Exception as e:
-            logger.exception(u"Found exception %s, exiting.", e)
+            logger.exception("Found exception %s, exiting.", e)
         finally:
             self.quit()

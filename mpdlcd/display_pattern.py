@@ -20,7 +20,7 @@ class ScreenPattern(object):
     """A screen pattern description.
 
     Attributes:
-        lines (unicode list): the lines of the pattern
+        lines (text list): the lines of the pattern
         line_fields (mpdlcd.display_fields.Field list list): List of the fields
             for each line.
         widgets (dict(mpdlcd.display_fields.Field => lcdproc.Widget)): widget to
@@ -32,7 +32,7 @@ class ScreenPattern(object):
     """
 
     def __init__(self, lines, field_registry):
-        self.lines = tuple(unicode(line) for line in lines)
+        self.lines = tuple(str(line) for line in lines)
         self.line_fields = []
         self.widgets = {}
         self.field_registry = field_registry
@@ -48,7 +48,7 @@ class ScreenPattern(object):
 
             # Convert field parameters into Field objects
             for (kind, options) in field_defs:
-                logger.debug(u"Creating field %s(%r)", kind, options)
+                logger.debug("Creating field %s(%r)", kind, options)
                 fields.append(self.field_registry.create(kind, **options))
 
             # Add the list of Field objects to the 'fields per line'.
@@ -122,7 +122,7 @@ class ScreenPattern(object):
             positions.append((left, field))
             left += field.width
 
-        logger.debug(u'Positions are %r', positions)
+        logger.debug('Positions are %r', positions)
         return positions
 
     def add_to_screen(self, screen_width, screen):
@@ -136,8 +136,10 @@ class ScreenPattern(object):
         """
         for lineno, fields in enumerate(self.line_fields):
             for left, field in self.compute_positions(screen_width, fields):
-                logger.debug(u"Adding field %s to screen %s at x=%d->%d, y=%d",
-                    field, screen.ref, left, left+field.width - 1, 1 + lineno)
+                logger.debug(
+                    "Adding field %s to screen %s at x=%d->%d, y=%d",
+                    field, screen.ref, left, left + field.width - 1, 1 + lineno,
+                )
 
                 self.widgets[field] = field.add_to_screen(screen,
                     left, 1 + lineno)
@@ -179,7 +181,7 @@ class ScreenPattern(object):
         Returns:
             PatternLine: the parsed line pattern
         """
-        logger.debug(u'Parsing line %s', line)
+        logger.debug('Parsing line %s', line)
 
         OUT_FIELD = 0
         IN_FIELD_KIND = 1
@@ -232,12 +234,11 @@ class ScreenPattern(object):
             def save_fixed_text(self):
                 """Register a completed, fixed text, field."""
                 assert self.state == OUT_FIELD
-                self._register_field(FIXED_TEXT_FIELD,
-                    {'text': u''.join(self.block)})
+                self._register_field(FIXED_TEXT_FIELD, {'text': ''.join(self.block)})
 
             def enter_field(self):
                 """Enter a new field."""
-                self.debug(u'Entering new field')
+                self.debug('Entering new field')
                 self.state = IN_FIELD_KIND
                 self.kind = ''
                 self.options = {}
@@ -247,33 +248,33 @@ class ScreenPattern(object):
             def leave_kind(self):
                 """Leave the field kind."""
                 self.state = IN_FIELD_OPTION_NAME
-                self.kind = u''.join(self.block)
-                self.debug(u"Got widget kind '%s'", self.kind)
+                self.kind = ''.join(self.block)
+                self.debug("Got widget kind '%s'", self.kind)
                 self._reset()
 
             def leave_option_name(self):
                 """Leave an option name."""
                 self.state = IN_FIELD_OPTION_VALUE
-                self.option_name = u''.join(self.block)
-                self.debug(u"Got option name '%s' for '%s'",
-                    self.option_name, self.kind)
+                self.option_name = ''.join(self.block)
+                self.debug("Got option name '%s' for '%s'", self.option_name, self.kind)
                 self._reset()
 
             def leave_option_value(self):
                 """Leave an option value."""
                 self.state = IN_FIELD_OPTION_NAME
-                option_value = u''.join(self.block)
+                option_value = ''.join(self.block)
                 self.options[self.option_name] = option_value
-                self.debug(u"Got option '%s=%s' for '%s'",
-                    self.option_name, option_value, self.kind)
+                self.debug("Got option '%s=%s' for '%s'", self.option_name, option_value, self.kind)
                 self._reset()
 
             def leave_field(self):
                 """Leave a field definition."""
                 self.state = OUT_FIELD
                 self._register_field(self.kind, self.options)
-                self.debug(u"Got widget '%s(%s)'", self.kind,
-                    u', '.join(u'%s=%r' % it for it in self.options.iteritems()))
+                self.debug(
+                    "Got widget '%s(%s)'", self.kind,
+                    ', '.join('%s=%r' % it for it in self.options.iteritems()),
+                )
                 self._reset()
 
         st = ParserState()
@@ -491,11 +492,11 @@ class ScreenPatternList(object):
         """
         if key in self.patterns:
             return ScreenPattern(self.patterns[key], self.field_registry)
-        for shorter in xrange(key, 0, -1):
+        for shorter in range(key, 0, -1):
             if shorter in self.min_patterns:
                 pattern = self.min_patterns[shorter]
 
                 # Try to vertically center the pattern
-                prefix = [u''] * (key - shorter / 2)
+                prefix = [''] * (key - shorter / 2)
                 return ScreenPattern(prefix + pattern, self.field_registry)
         return ScreenPattern([], self.field_registry)

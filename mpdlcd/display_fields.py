@@ -26,7 +26,7 @@ class FieldRegistry(object):
             raise FieldRegistryError(
                 "Need a name to register field %s." % field_class)
         elif name not in cls._REGISTRY:
-            logger.debug(u'Registring field %s', name)
+            logger.debug('Registring field %s', name)
             cls._REGISTRY[name] = field_class
         else:
             if cls._REGISTRY[name] != field_class:
@@ -159,7 +159,7 @@ class StateField(Field):
 
     def state_changed(self, widget, new_state):
         name = MPD_TO_LCDD_MAP.get(new_state, MPD_STOP)
-        logger.debug(u'Setting widget %s to %r', widget.ref, name)
+        logger.debug('Setting widget %s to %r', widget.ref, name)
         widget.set_name(name)
 
 
@@ -187,7 +187,7 @@ class BacklightPseudoField(Field):
         else:
             backlight_on = False
         backlight = 'on' if backlight_on else 'off'
-        logger.debug(u"Setting backlight to %s", backlight)
+        logger.debug("Setting backlight to %s", backlight)
         self._screen.set_backlight(backlight)
 
 class PriorityPseudoField(Field):
@@ -208,7 +208,7 @@ class PriorityPseudoField(Field):
             priority = self.priority_playing
         else:
             priority = self.priority_not_playing
-        logger.debug(u"Setting priority to %s", priority)
+        logger.debug("Setting priority to %s", priority)
         self._screen.set_priority(priority)
 
 
@@ -239,7 +239,7 @@ class BaseTimeField(Field):
     def state_changed(self, widget, new_state):
         if new_state not in (MPD_PLAY, MPD_PAUSE):
             txt = self._format_time(None)
-            logger.debug(u'Setting widget %s to %r', widget.ref, txt)
+            logger.debug('Setting widget %s to %r', widget.ref, txt)
             widget.set_text(txt)
 
 
@@ -249,7 +249,7 @@ class ElapsedTimeField(BaseTimeField):
 
     def time_changed(self, widget, elapsed, total):
         txt = self._format_time(elapsed)
-        logger.debug(u'Setting widget %s to %r', widget.ref, txt)
+        logger.debug('Setting widget %s to %r', widget.ref, txt)
         widget.set_text(txt)
 
 
@@ -259,7 +259,7 @@ class TotalTimeField(BaseTimeField):
 
     def time_changed(self, widget, elapsed, total):
         txt = self._format_time(total)
-        logger.debug(u'Setting widget %s to %r', widget.ref, txt)
+        logger.debug('Setting widget %s to %r', widget.ref, txt)
         widget.set_text(txt)
 
 
@@ -273,7 +273,7 @@ class RemainingTimeField(BaseTimeField):
         else:
             remaining = None
         txt = self._format_time(remaining)
-        logger.debug(u'Setting widget %s to %r', widget.ref, txt)
+        logger.debug('Setting widget %s to %r', widget.ref, txt)
         widget.set_text(txt)
 
 
@@ -301,7 +301,7 @@ class BitRateField(Field):
 
     def status_changed(self, widget, new_status):
         txt = self._format_bitrate(new_status.get('bitrate') or 0)
-        logger.debug(u"Setting widget %r to %r", widget.ref, txt)
+        logger.debug("Setting widget %r to %r", widget.ref, txt)
         widget.set_text(txt)
 
 
@@ -329,7 +329,7 @@ class SamplingField(Field):
 
     def status_changed(self, widget, new_status):
         txt = self._format_sampling(new_status.get('audio') or '0:0:0')
-        logger.debug(u"Setting widget %r to %r", widget.ref, txt)
+        logger.debug("Setting widget %r to %r", widget.ref, txt)
         widget.set_text(txt)
 
 
@@ -338,7 +338,7 @@ class SongField(Field):
     base_name = 'song'
     target_hooks = ['song']
 
-    def __init__(self, format=u'', width=-1, speed=2, **kwargs):
+    def __init__(self, format='', width=-1, speed=2, **kwargs):
         self.format = format
         self.watched_fields = utils.extract_pattern(format)
         self.speed = int(speed)
@@ -357,7 +357,7 @@ class SongField(Field):
 
     @classmethod
     def _song_dict(cls, song):
-        fields = collections.defaultdict(lambda: u'')
+        fields = collections.defaultdict(lambda: '')
         fields.update(song.tags)
         return fields
 
@@ -365,6 +365,6 @@ class SongField(Field):
         if new_song:
             txt = self.format % self._song_dict(new_song)
         else:
-            txt = u''
-        logger.debug(u'Setting widget %s to %r', widget.ref, txt)
+            txt = ''
+        logger.debug('Setting widget %s to %r', widget.ref, txt)
         self.set_widget_text(widget, txt)

@@ -37,7 +37,7 @@ class MPDClient(utils.AutoRetryCandidate):
     def _decode_text(self, text):
         # MPD protocol states that all data is UTF-8 encoded.
         # Ref: http://www.musicpd.org/doc/protocol/ch01s02.html
-        return unicode(text, 'utf8')
+        return text.decode('utf8')
 
     def _decode_text_or_list(self, text_or_list):
         """Takes a 'text or list' and normalizes it to a UTF-8-decoded list."""
@@ -54,7 +54,7 @@ class MPDClient(utils.AutoRetryCandidate):
     @utils.auto_retry
     def connect(self):
         if not self._connected:
-            logger.info(u'Connecting to MPD server at %s:%s', self.host, self.port)
+            logger.info('Connecting to MPD server at %s:%s', self.host, self.port)
             self._client.connect(host=self.host, port=self.port)
             if self.password:
                 self._client.password(self.password)
@@ -67,12 +67,12 @@ class MPDClient(utils.AutoRetryCandidate):
 
     @property
     def random(self):
-        logger.debug(u'Fetching MPD random state')
+        logger.debug('Fetching MPD random state')
         return self.status['random'] == 1
 
     @property
     def repeat(self):
-        logger.debug(u'Fetchin MPD repeat state')
+        logger.debug('Fetchin MPD repeat state')
         return self.status['repeat'] == 1
 
     def _parse_time(self, time):
@@ -83,7 +83,7 @@ class MPDClient(utils.AutoRetryCandidate):
 
     @property
     def elapsed(self):
-        logger.debug(u'Fetching MPD elapsed time')
+        logger.debug('Fetching MPD elapsed time')
         time = self.status.get('time')
         if time:
             return self._parse_time(time.split(':')[0])
@@ -92,7 +92,7 @@ class MPDClient(utils.AutoRetryCandidate):
 
     @property
     def total(self):
-        logger.debug(u'Fetching MPD total time')
+        logger.debug('Fetching MPD total time')
         time = self.status.get('time')
         if time:
             return self._parse_time(time.split(':')[-1])
@@ -101,7 +101,7 @@ class MPDClient(utils.AutoRetryCandidate):
 
     @property
     def elapsed_and_total(self):
-        logger.debug(u'Fetching MPD elapsed and total time')
+        logger.debug('Fetching MPD elapsed and total time')
         time = self.status.get('time')
         if time and ':' in time:
             elapsed, total = time.split(':', 1)
@@ -111,17 +111,17 @@ class MPDClient(utils.AutoRetryCandidate):
 
     @property
     def state(self):
-        logger.debug(u'Fetching MPD state')
+        logger.debug('Fetching MPD state')
         state = self.status['state']
-        logger.debug(u'MPD state: %r', state)
+        logger.debug('MPD state: %r', state)
         return state
 
     @property
     @utils.auto_retry
     def current_song(self):
-        logger.debug(u'Fetching MPD song information')
+        logger.debug('Fetching MPD song information')
         song_tags = self._decode_dict(self._client.currentsong())
-        logger.debug(u'MPD currentsong: %r', song_tags)
+        logger.debug('MPD currentsong: %r', song_tags)
         return MPDSong(**song_tags)
 
 
@@ -134,7 +134,7 @@ class SongTag(object):
         alternate_tags (str list): alternate fields from which this tag may be
             filled
     """
-    def __init__(self, name, default=u"", *alternate_tags):
+    def __init__(self, name, default="", *alternate_tags):
         self.name = name
         self.default = default
         self.alternate_tags = alternate_tags
@@ -142,11 +142,11 @@ class SongTag(object):
     def get(self, tags):
         """Find an adequate value for this field from a dict of tags."""
         # Try to find our name
-        value = tags.get(self.name, u'')
+        value = tags.get(self.name, '')
 
         for name in self.alternate_tags:
             # Iterate of alternates until a non-empty value is found
-            value = value or tags.get(name, u'')
+            value = value or tags.get(name, '')
 
         # If we still have nothing, return our default
         value = value or self.default
@@ -155,11 +155,11 @@ class SongTag(object):
 
 class MPDSong(object):
     BASE_TAGS = (
-        SongTag('artist', u"<Unknown>", 'albumartist', 'composer', 'performer'),
-        SongTag('title', u"<Unknown>", 'name'),
-        SongTag('name', u"<Unknown>", 'title'),
-        SongTag('time', u"--:--"),
-        SongTag('file', u"<Unknown>"),
+        SongTag('artist', "<Unknown>", 'albumartist', 'composer', 'performer'),
+        SongTag('title', "<Unknown>", 'name'),
+        SongTag('name', "<Unknown>", 'title'),
+        SongTag('time', "--:--"),
+        SongTag('file', "<Unknown>"),
     )
 
     def __init__(self, **kwargs):
@@ -175,5 +175,5 @@ class MPDSong(object):
         """If no song is playing, we won't have an ID."""
         return 'id' in self.tags
 
-    def format(self, fmt=u'{artist} - {title}'):
+    def format(self, fmt='{artist} - {title}'):
         return fmt.format(**self.tags)

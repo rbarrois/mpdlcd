@@ -2,10 +2,8 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2011-2013 Raphaël Barrois
 
-from __future__ import print_function
-
-from .compat import configparser
-from .compat import urllib_parse
+import configparser
+import urllib.parse
 
 import collections
 import logging
@@ -81,22 +79,22 @@ BASE_CONFIG = {
 
 DEFAULT_PATTERNS = [
     # One line
-    u"""{state} {song format="%(artist)s - %(title)s"} {elapsed}""",
+    """{state} {song format="%(artist)s - %(title)s"} {elapsed}""",
 
     # Two lines
-    u"""{song format="%(artist)s",speed=4} {elapsed}\n"""
-    u"""{song format="%(title)s",speed=2} {state}""",
+    """{song format="%(artist)s",speed=4} {elapsed}\n"""
+    """{song format="%(title)s",speed=2} {state}""",
 
     # Three lines
-    u"""{song format="%(artist)s",speed=4}\n"""
-    u"""{song format="%(album)s - %(title)s",speed=2}\n"""
-    u"""{state}  {elapsed} / {total}""",
+    """{song format="%(artist)s",speed=4}\n"""
+    """{song format="%(album)s - %(title)s",speed=2}\n"""
+    """{state}  {elapsed} / {total}""",
 
     # Four lines
-    u"""{song format="%(artist)s",speed=4}\n"""
-    u"""{song format="%(album)s",speed=4}\n"""
-    u"""{song format="%(title)s",speed=2}\n"""
-    u"""{elapsed}  {state}  {remaining}""",
+    """{song format="%(artist)s",speed=4}\n"""
+    """{song format="%(album)s",speed=4}\n"""
+    """{song format="%(title)s",speed=2}\n"""
+    """{elapsed}  {state}  {remaining}""",
 ]
 
 
@@ -121,8 +119,7 @@ def _make_hostport(conn, default_host, default_port, default_user='', default_pa
     Returns:
         (str, int): a (host, port) tuple.
     """
-
-    parsed = urllib_parse.urlparse('//%s' % conn)
+    parsed = urllib.parse.urlparse('//%s' % conn)
     return Connection(
         parsed.hostname or default_host,
         parsed.port or default_port,
@@ -161,8 +158,7 @@ def _make_lcdproc(lcd_host, lcd_port, retry_config,
     try:
         return spawner.connect()
     except socket.error as e:
-        logger.error(u'Unable to connect to lcdproc %s:%s.',
-            lcd_host, lcd_port)
+        logger.error('Unable to connect to lcdproc %s:%s : %r', lcd_host, lcd_port, e)
         raise SystemExit(1)
 
 
@@ -433,9 +429,7 @@ def _read_config(filename):
     """
     parser = configparser.RawConfigParser()
     if filename and not parser.read(filename):
-        sys.stderr.write(
-            u"Unable to open configuration file %s. Use --config='' to disable "
-            u"this warning.\n" % filename)
+        sys.stderr.write("Unable to open configuration file %s. Use --config='' to disable this warning.\n" % filename)
 
     config = {}
 

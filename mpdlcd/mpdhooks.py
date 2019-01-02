@@ -19,7 +19,7 @@ class HookRegistry(object):
             raise HookRegistryError(
                 "Need a name to register hook %s." % hook_class)
         elif name not in cls._REGISTRY:
-            logger.debug(u'Registring hook %s', name)
+            logger.debug('Registring hook %s', name)
             cls._REGISTRY[name] = hook_class
         else:
             if cls._REGISTRY[name] != hook_class:
@@ -89,8 +89,7 @@ class MPDHook(object):
                 updated[subhook] = new_key
 
         if updated:
-            logger.debug(u"Hook %s: data changed from %r to %r",
-                self.name, self.previous_keys, updated)
+            logger.debug("Hook %s: data changed from %r to %r", self.name, self.previous_keys, updated)
             self.previous_keys.update(updated)
             return (True, new_data)
 
