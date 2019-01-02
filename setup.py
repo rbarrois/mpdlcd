@@ -42,7 +42,6 @@ setup(
         'setuptools>=0.8',
     ],
     install_requires=[
-        'lcdproc',
         'python_mpd2',
     ],
     tests_require=[],

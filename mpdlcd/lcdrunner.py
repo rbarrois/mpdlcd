@@ -5,7 +5,7 @@ import logging
 import time
 import unicodedata
 
-from lcdproc import server
+from .vendor.lcdproc import server
 
 from . import display_fields
 from . import enums

@@ -27,7 +27,7 @@ Installing
 ----------
 
 The simplest way to install MPDLcd is to use your distribution's packages.
-It requires the ``lcdproc`` and ``python_mpd2`` Python libraries.
+It requires the and ``python_mpd2`` Python library.
 
 
 Gentoo
@@ -45,13 +45,7 @@ Debian/Ubuntu
 
       apt-get install python-mpd
 
-2. Install the ``lcdproc`` package from PIP
-
-  .. code-block:: sh
-
-      pip install lcdproc
-
-3. Install ``mpdlcd`` from PIP:
+2. Install ``mpdlcd`` from PIP:
 
    .. code-block:: sh
 
@@ -67,7 +61,7 @@ If it hasn't been packaged for your distribution yet, you can also install from 
 
   pip install mpdlcd
 
-This will pull in the ``python_mpd2`` and ``lcdproc`` Python libraries.
+This will pull in the ``python_mpd2`` Python library.
 
 Example initd scripts are provided in the *initd/* folder.
 
