@@ -140,10 +140,9 @@ class FixedText(Field):
     def __init__(self, text, **kwargs):
         super(FixedText, self).__init__(width=len(text), **kwargs)
         self.text = text
-    
+
     def add_to_screen(self, screen, left, top):
-        return screen.add_string_widget(self.name,
-            screen.server.encode(self.text), left, top)
+        return screen.add_string_widget(self.name, screen.server.encode(self.text), left, top)
 
 
 @register_field
@@ -168,7 +167,7 @@ class BacklightPseudoField(Field):
     target_hooks = ['state']
 
     def __init__(self, backlight_rule, **kwargs):
-        self.backlight_rule=backlight_rule
+        self.backlight_rule = backlight_rule
         self._screen = None
         super(BacklightPseudoField, self).__init__(width=0, **kwargs)
 
@@ -190,13 +189,14 @@ class BacklightPseudoField(Field):
         logger.debug("Setting backlight to %s", backlight)
         self._screen.set_backlight(backlight)
 
+
 class PriorityPseudoField(Field):
     base_name = 'priority'
     target_hooks = ['state']
 
     def __init__(self, priority_playing, priority_not_playing, **kwargs):
-        self.priority_playing=priority_playing
-        self.priority_not_playing=priority_not_playing
+        self.priority_playing = priority_playing
+        self.priority_not_playing = priority_not_playing
         self._screen = None
         super(PriorityPseudoField, self).__init__(width=0, **kwargs)
 
@@ -233,8 +233,7 @@ class BaseTimeField(Field):
             return '%02d:%02d' % (minutes, seconds)
 
     def add_to_screen(self, screen, left, top):
-        return screen.add_string_widget(self.name, self._format_time(None),
-            x=left, y=top)
+        return screen.add_string_widget(self.name, self._format_time(None), x=left, y=top)
 
     def state_changed(self, widget, new_state):
         if new_state not in (MPD_PLAY, MPD_PAUSE):
@@ -291,8 +290,7 @@ class BitRateField(Field):
         super(BitRateField, self).__init__(width=width, **kwargs)
 
     def add_to_screen(self, screen, left, top):
-        return screen.add_string_widget(self.name,
-            self._format_bitrate(), x=left, y=top)
+        return screen.add_string_widget(self.name, self._format_bitrate(), x=left, y=top)
 
     def hook_changed(self, hook_name, widget, new_data):
         if hook_name == 'status':
@@ -319,8 +317,7 @@ class SamplingField(Field):
         super(SamplingField, self).__init__(width=width, **kwargs)
 
     def add_to_screen(self, screen, left, top):
-        return screen.add_string_widget(self.name,
-            self._format_sampling(), x=left, y=top)
+        return screen.add_string_widget(self.name, self._format_sampling(), x=left, y=top)
 
     def hook_changed(self, hook_name, widget, new_data):
         if hook_name == 'status':
@@ -345,9 +342,11 @@ class SongField(Field):
         super(SongField, self).__init__(width=width, **kwargs)
 
     def add_to_screen(self, screen, left, top):
-        return screen.add_scroller_widget(self.name,
+        return screen.add_scroller_widget(
+            self.name,
             left=left, top=top, right=left + self.width - 1, bottom=top,
-            speed=self.speed, text=' ' * self.width)
+            speed=self.speed, text=' ' * self.width,
+        )
 
     def register_hooks(self):
         """Override: register watched_fields as subhooks of the 'song' hook."""

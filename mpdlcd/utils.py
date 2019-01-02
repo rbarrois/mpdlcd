@@ -42,7 +42,7 @@ class AutoRetryCandidate(object):
         self._retry_config = retry_config
 
         if not logger:
-            logger=logging.getLogger(self.__class__.__module__)
+            logger = logging.getLogger(self.__class__.__module__)
         self._retry_logger = logger
         super(AutoRetryCandidate, self).__init__(*args, **kwargs)
 

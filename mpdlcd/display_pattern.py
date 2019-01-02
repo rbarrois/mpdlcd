@@ -141,8 +141,7 @@ class ScreenPattern(object):
                     field, screen.ref, left, left + field.width - 1, 1 + lineno,
                 )
 
-                self.widgets[field] = field.add_to_screen(screen,
-                    left, 1 + lineno)
+                self.widgets[field] = field.add_to_screen(screen, left, 1 + lineno)
                 self.register_hooks(field)
 
     def register_hooks(self, field):
@@ -303,15 +302,13 @@ class ScreenPattern(object):
                         continue
 
                     else:
-                        raise FormatError("Unexpected '%s' at %d in %s" %
-                            (char, pos, line))
+                        raise FormatError("Unexpected '%s' at %d in %s" % (char, pos, line))
 
                 elif st.state == OUT_FIELD:
                     st.block.append(char)
 
                 else:
-                    raise FormatError("Unexpected '%s' at %d in %s" %
-                        (char, pos, line))
+                    raise FormatError("Unexpected '%s' at %d in %s" % (char, pos, line))
 
             # Entering a field
             elif char == '{':
@@ -333,8 +330,7 @@ class ScreenPattern(object):
                     st.leave_field()
 
                 elif st.state == IN_FIELD_OPTION_NAME:
-                    raise FormatError("Missing option value for %s at %d in %s"
-                        % (''.join(st.block), pos, line))
+                    raise FormatError("Missing option value for %s at %d in %s" % (''.join(st.block), pos, line))
 
                 elif st.state == IN_FIELD_OPTION_VALUE:
                     if st.quote:
@@ -350,8 +346,7 @@ class ScreenPattern(object):
             elif char == ' ':
                 if st.state == IN_FIELD_KIND:
                     if not st.block:
-                        raise FormatError("Missing field kind at %s in %s"
-                            % (pos, line))
+                        raise FormatError("Missing field kind at %s in %s" % (pos, line))
 
                     st.leave_kind()
 
@@ -368,16 +363,13 @@ class ScreenPattern(object):
             elif char == ',':
                 if st.state == IN_FIELD_OPTION_NAME:
                     if st.block:
-                        raise FormatError("Missing option value for %s at %d in %s"
-                            % (''.join(st.block), pos, line))
+                        raise FormatError("Missing option value for %s at %d in %s" % (''.join(st.block), pos, line))
                     else:
                         # At the beginning of a new option
                         continue
 
                 elif st.state == IN_FIELD_KIND:
-                    raise FormatError(
-                        "Unexpected ',' in field definition %s at %d in %s" %
-                        (st.kind, pos, line))
+                    raise FormatError("Unexpected ',' in field definition %s at %d in %s" % (st.kind, pos, line))
 
                 elif st.state == IN_FIELD_OPTION_VALUE:
                     if st.quote:
@@ -385,9 +377,7 @@ class ScreenPattern(object):
                     elif st.block:
                         st.leave_option_value()
                     else:
-                        raise FormatError(
-                            "Missing option value for %s at %d in %s"
-                            % (st.option_name, pos, line))
+                        raise FormatError("Missing option value for %s at %d in %s" % (st.option_name, pos, line))
 
                 else:  # OUT_FIELD
                     st.block.append(char)
@@ -399,8 +389,7 @@ class ScreenPattern(object):
                         st.leave_option_name()
 
                     else:
-                        raise FormatError(
-                            "Missing option name at %d in %s" % (pos, line))
+                        raise FormatError("Missing option name at %d in %s" % (pos, line))
 
                 elif st.state == OUT_FIELD:
                     st.block.append(char)
@@ -427,8 +416,7 @@ class ScreenPattern(object):
 
         # All input parsed
         if st.state != OUT_FIELD:
-            raise FormatError("Unclosed field at %d in '%s'; block: '%s'"
-                % (pos, line, ''.join(st.block)))
+            raise FormatError("Unclosed field at %d in '%s'; block: '%s'" % (pos, line, ''.join(st.block)))
 
         if st.block:
             st.save_fixed_text()

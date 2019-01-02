@@ -100,8 +100,7 @@ DEFAULT_PATTERNS = [
 logger = logging.getLogger('mpdlcd')
 
 
-Connection = collections.namedtuple('Connection',
-    ['hostname', 'port', 'username', 'password'])
+Connection = collections.namedtuple('Connection', ['hostname', 'port', 'username', 'password'])
 
 
 def _make_hostport(conn, default_host, default_port, default_user='', default_password=None):
@@ -127,7 +126,8 @@ def _make_hostport(conn, default_host, default_port, default_user='', default_pa
     )
 
 
-def _make_lcdproc(lcd_host, lcd_port, retry_config,
+def _make_lcdproc(
+        lcd_host, lcd_port, retry_config,
         charset=DEFAULT_LCDPROC_CHARSET, lcdd_debug=False):
     """Create and connect to the LCDd server.
 
@@ -174,14 +174,15 @@ def _make_patterns(patterns):
     field_registry = display_fields.FieldRegistry()
 
     pattern_list = display_pattern.ScreenPatternList(
-            field_registry=field_registry,
+        field_registry=field_registry,
     )
     for pattern in patterns:
         pattern_list.add(pattern.split('\n'))
     return pattern_list
 
 
-def run_forever(lcdproc='', mpd='', lcdproc_screen=DEFAULT_LCD_SCREEN_NAME,
+def run_forever(
+        lcdproc='', mpd='', lcdproc_screen=DEFAULT_LCD_SCREEN_NAME,
         lcdproc_charset=DEFAULT_LCDPROC_CHARSET,
         lcdd_debug=False,
         pattern='', patterns=[],
@@ -227,11 +228,16 @@ def run_forever(lcdproc='', mpd='', lcdproc_screen=DEFAULT_LCD_SCREEN_NAME,
     )
 
     # Setup LCDd client
-    lcd = _make_lcdproc(lcd_conn.hostname, lcd_conn.port, lcdd_debug=lcdd_debug,
-        charset=lcdproc_charset, retry_config=retry_config)
+    lcd = _make_lcdproc(
+        lcd_conn.hostname, lcd_conn.port,
+        lcdd_debug=lcdd_debug,
+        charset=lcdproc_charset,
+        retry_config=retry_config,
+    )
 
     # Setup connector
-    runner = lcdrunner.MpdRunner(mpd_client, lcd,
+    runner = lcdrunner.MpdRunner(
+        mpd_client, lcd,
         lcdproc_screen=lcdproc_screen,
         refresh_rate=refresh,
         retry_config=retry_config,
@@ -274,40 +280,44 @@ def _make_parser():
 
     # General options
     # ---------------
-    parser.add_option('-c', '--config', dest='config',
-            help='Read configuration from CONFIG (default: %s)' %
-            DEFAULT_CONFIG_FILE, metavar='CONFIG', default=DEFAULT_CONFIG_FILE)
+    parser.add_option(
+        '-c', '--config', dest='config',
+        help='Read configuration from CONFIG (default: %s)' % DEFAULT_CONFIG_FILE,
+        metavar='CONFIG', default=DEFAULT_CONFIG_FILE)
     # End general options
 
     # Display options
     # ---------------
     group = optparse.OptionGroup(parser, 'Display')
-    group.add_option('--pattern', dest='pattern',
-            help='Use this PATTERN (lines separated by \\n)',
-            metavar='PATTERN', default='')
-    group.add_option('--patterns', dest='patterns', action='append',
-            help='Register a PATTERN; the actual pattern is chosen according '
-            'to screen height.',
-            metavar='PATTERN')
-    group.add_option('--refresh', dest='refresh', type='float',
-            help='Refresh the display every REFRESH seconds (default: %.1fs)' %
-                    DEFAULT_REFRESH,
-            metavar='REFRESH')
-    group.add_option('--lcdproc-screen', dest='lcdproc_screen',
-            help='Register the SCREEN_NAME lcdproc screen for mpd status '
-            '(default: %s)' % DEFAULT_LCD_SCREEN_NAME,
-            metavar='SCREEN_NAME')
-    group.add_option('--backlight-on', dest='backlight_on',
-            help="Activate backlight always|never|in play mode|in play/pause mode (default: %s)" %
-            DEFAULT_BACKLIGHT_ON,
-            choices=enums.BACKLIGHT_ON_CHOICES,
-            metavar='BACKLIGHT_ON')
-    group.add_option('--priority-playing', dest='priority_playing',
-            help="Screen priority when music is playing (default: %s)" % DEFAULT_PRIORITY,
-            metavar='PRIORITY_PLAYING')
-    group.add_option('--priority-not-playing', dest='priority_not_playing',
-            help="Screen priority when music is not playing (default: %s)" % DEFAULT_PRIORITY,
-            metavar='PRIORITY_NOT_PLAYING')
+    group.add_option(
+        '--pattern', dest='pattern',
+        help='Use this PATTERN (lines separated by \\n)',
+        metavar='PATTERN', default='')
+    group.add_option(
+        '--patterns', dest='patterns', action='append',
+        help='Register a PATTERN; the actual pattern is chosen according to screen height.',
+        metavar='PATTERN')
+    group.add_option(
+        '--refresh', dest='refresh', type='float',
+        help='Refresh the display every REFRESH seconds (default: %.1fs)' % DEFAULT_REFRESH,
+        metavar='REFRESH')
+    group.add_option(
+        '--lcdproc-screen', dest='lcdproc_screen',
+        help='Register the SCREEN_NAME lcdproc screen for mpd status (default: %s)' % DEFAULT_LCD_SCREEN_NAME,
+        metavar='SCREEN_NAME')
+    group.add_option(
+        '--backlight-on', dest='backlight_on',
+        help="Activate backlight always|never|in play mode|in play/pause mode (default: %s)" % DEFAULT_BACKLIGHT_ON,
+        choices=enums.BACKLIGHT_ON_CHOICES,
+        metavar='BACKLIGHT_ON')
+    group.add_option(
+        '--priority-playing', dest='priority_playing',
+        help="Screen priority when music is playing (default: %s)" % DEFAULT_PRIORITY,
+        metavar='PRIORITY_PLAYING')
+    group.add_option(
+        '--priority-not-playing', dest='priority_not_playing',
+        help="Screen priority when music is not playing (default: %s)" % DEFAULT_PRIORITY,
+        metavar='PRIORITY_NOT_PLAYING')
 
     # End display options
     parser.add_option_group(group)
@@ -315,28 +325,32 @@ def _make_parser():
     # Connection options
     # ------------------
     group = optparse.OptionGroup(parser, 'Connection')
-    group.add_option('-l', '--lcdproc', dest='lcdproc',
-            help='Connect to lcdproc at LCDPROC', metavar='LCDPROC')
-    group.add_option('-m', '--mpd', dest='mpd',
-            help='Connect to mpd running at MPD', metavar='MPD')
-    group.add_option('--lcdproc-charset', dest='lcdproc_charset',
-            help='Use CHARSET for communications to lcdproc', metavar='CHARSET')
-    group.add_option('--lcdd-debug', dest='lcdd_debug', action='store_true',
-            help='Add full debug output of LCDd commands', default=False)
+    group.add_option(
+        '-l', '--lcdproc', dest='lcdproc',
+        help='Connect to lcdproc at LCDPROC', metavar='LCDPROC')
+    group.add_option(
+        '-m', '--mpd', dest='mpd',
+        help='Connect to mpd running at MPD', metavar='MPD')
+    group.add_option(
+        '--lcdproc-charset', dest='lcdproc_charset',
+        help='Use CHARSET for communications to lcdproc', metavar='CHARSET')
+    group.add_option(
+        '--lcdd-debug', dest='lcdd_debug', action='store_true',
+        help='Add full debug output of LCDd commands', default=False)
 
     # Auto-retry
-    group.add_option('--retry-attempts', dest='retry_attempts', type='int',
-            help='Retry connections RETRY_ATTEMPTS times (default: %d)' %
-                    DEFAULT_RETRY_ATTEMPTS,
-            metavar='RETRY_ATTEMPTS')
-    group.add_option('--retry-wait', dest='retry_wait', type='float',
-            help='Wait RETRY_WAIT between connection attempts (default: %.1fs)' %
-                    DEFAULT_RETRY_WAIT,
-            metavar='RETRY_WAIT')
-    group.add_option('--retry-backoff', dest='retry_backoff', type='int',
-            help='Increase RETRY_WAIT by a RETRY_BACKOFF factor after each '
-                'failure (default: %d)' % DEFAULT_RETRY_BACKOFF,
-            metavar='RETRY_BACKOFF')
+    group.add_option(
+        '--retry-attempts', dest='retry_attempts', type='int',
+        help='Retry connections RETRY_ATTEMPTS times (default: %d)' % DEFAULT_RETRY_ATTEMPTS,
+        metavar='RETRY_ATTEMPTS')
+    group.add_option(
+        '--retry-wait', dest='retry_wait', type='float',
+        help='Wait RETRY_WAIT between connection attempts (default: %.1fs)' % DEFAULT_RETRY_WAIT,
+        metavar='RETRY_WAIT')
+    group.add_option(
+        '--retry-backoff', dest='retry_backoff', type='int',
+        help='Increase RETRY_WAIT by a RETRY_BACKOFF factor after each failure (default: %d)' % DEFAULT_RETRY_BACKOFF,
+        metavar='RETRY_BACKOFF')
 
     # End connection options
     parser.add_option_group(group)
@@ -344,31 +358,35 @@ def _make_parser():
     # Logging options
     # ---------------
     group = optparse.OptionGroup(parser, 'Logging')
-    group.add_option('-s', '--syslog', dest='syslog', action='store_true',
-            help='Enable syslog logging (default: False)')
-    group.add_option('--no-syslog', dest='syslog', action='store_false',
-            help='Disable syslog logging (Useful when enabled in config file)')
+    group.add_option(
+        '-s', '--syslog', dest='syslog', action='store_true',
+        help='Enable syslog logging (default: False)')
+    group.add_option(
+        '--no-syslog', dest='syslog', action='store_false',
+        help='Disable syslog logging (Useful when enabled in config file)')
 
-    group.add_option('--syslog-facility', dest='syslog_facility',
-            help='Log into syslog facility FACILITY (default: %s)' %
-                    DEFAULT_SYSLOG_FACILITY,
-            metavar='FACILITY')
+    group.add_option(
+        '--syslog-facility', dest='syslog_facility',
+        help='Log into syslog facility FACILITY (default: %s)' % DEFAULT_SYSLOG_FACILITY,
+        metavar='FACILITY')
 
-    group.add_option('--syslog-address', dest='syslog_address',
-            help='Log into syslog at ADDRESS (default: %s)' %
-                    DEFAULT_SYSLOG_ADDRESS,
-            metavar='ADDRESS')
+    group.add_option(
+        '--syslog-address', dest='syslog_address',
+        help='Log into syslog at ADDRESS (default: %s)' % DEFAULT_SYSLOG_ADDRESS,
+        metavar='ADDRESS')
 
-    group.add_option('-f', '--logfile', dest='logfile',
-            help="Log into LOGFILE ('-' for stderr)", metavar='LOGFILE')
+    group.add_option(
+        '-f', '--logfile', dest='logfile',
+        help="Log into LOGFILE ('-' for stderr)", metavar='LOGFILE')
 
-    group.add_option('--loglevel', dest='loglevel', type='choice',
-            help='Logging level (%s; default: %s)' %
-                    ('/'.join(LOGLEVELS.keys()), DEFAULT_LOGLEVEL),
-            choices=LOGLEVELS.keys())
-    group.add_option('-d', '--debug', dest='debug',
-            help="Log debug output from the MODULES components",
-            metavar='MODULES')
+    group.add_option(
+        '--loglevel', dest='loglevel', type='choice',
+        help='Logging level (%s; default: %s)' % ('/'.join(LOGLEVELS.keys()), DEFAULT_LOGLEVEL),
+        choices=LOGLEVELS.keys())
+    group.add_option(
+        '-d', '--debug', dest='debug',
+        help="Log debug output from the MODULES components",
+        metavar='MODULES')
 
     # End logging options
     parser.add_option_group(group)
@@ -376,15 +394,14 @@ def _make_parser():
     return parser
 
 
-def _setup_logging(syslog=False, syslog_facility=DEFAULT_SYSLOG_FACILITY,
+def _setup_logging(
+        syslog=False, syslog_facility=DEFAULT_SYSLOG_FACILITY,
         syslog_address=DEFAULT_SYSLOG_ADDRESS, logfile=DEFAULT_LOGFILE,
         loglevel=DEFAULT_LOGLEVEL, debug='', **kwargs):
     level = LOGLEVELS[loglevel]
 
-    verbose_formatter = logging.Formatter(
-            '%(asctime)s %(levelname)s %(name)s %(message)s')
-    quiet_formatter = logging.Formatter(
-            '%(levelname)s %(name)s %(message)s')
+    verbose_formatter = logging.Formatter('%(asctime)s %(levelname)s %(name)s %(message)s')
+    quiet_formatter = logging.Formatter('%(levelname)s %(name)s %(message)s')
 
     if syslog:
         if syslog_address and syslog_address[0] == '/':
@@ -493,10 +510,12 @@ def main(argv):
         print("Base config: %s" % base_config)
         print("With overrides: %s" % _extract_options(base_config, options, *base_config.keys()))
 
-    _setup_logging(**_extract_options(base_config, options,
+    _setup_logging(**_extract_options(
+        base_config, options,
         'syslog', 'syslog_facility', 'syslog_address',
         'logfile', 'loglevel', 'debug'))
-    run_forever(**_extract_options(base_config, options,
+    run_forever(**_extract_options(
+        base_config, options,
         'lcdproc', 'mpd', 'lcdproc_charset', 'lcdproc_screen', 'lcdd_debug',
         'refresh', 'backlight_on',
         'priority_playing', 'priority_not_playing',
