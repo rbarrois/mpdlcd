@@ -27,15 +27,13 @@ import telnetlib
 import urllib
 import select
 
-from screen import Screen
+from .screen import Screen
 
 
 class Server(object):
-
     """ LCDproc Server Object """
 
     def __init__(self, hostname="localhost", port=13666, debug=False):
-
         """ Constructor """
 
         self.debug = debug
@@ -47,7 +45,6 @@ class Server(object):
         self.keys = list()
 
     def start_session(self):
-
         """ Start Session """
 
         response = self.request("hello")
@@ -62,9 +59,7 @@ class Server(object):
         })
         return response
 
-
     def request(self, command_string):
-
         """ Request """
 
         self.tn.write((command_string + "\n").encode())
@@ -84,7 +79,6 @@ class Server(object):
             print("Telnet Response: %s" % (response[:-1]))
         return response
 
-
     def poll(self):
         """
         Poll
@@ -101,7 +95,6 @@ class Server(object):
         else:
             return None
 
-
     def add_screen(self, ref):
 
         """ Add Screen """
@@ -112,14 +105,12 @@ class Server(object):
             self.screens[ref] = screen
             return self.screens[ref]
 
-
     def del_screen(self, ref):
         """ Delete/Remove Screen """
         self.request("screen_del %s" % (ref))
         del(self.screens[ref])
 
-
-    def add_key(self, ref, mode = "shared"):
+    def add_key(self, ref, mode="shared"):
         """
         Add a key.
 
@@ -128,10 +119,10 @@ class Server(object):
         """
         if ref not in self.keys:
             response = self.request("client_add_key %s -%s" % (ref, mode))
-            if "success" not in response: return None
+            if "success" not in response:
+                return None
             self.keys.append(ref)
             return ref
-
 
     def del_key(self, ref):
         """
@@ -147,7 +138,6 @@ class Server(object):
                 return None
             else:
                 return response
-
 
     def output(self, value):
         """
