@@ -3,8 +3,6 @@
 
 import logging
 import mpd
-import time
-import socket
 
 
 from mpdlcd import utils

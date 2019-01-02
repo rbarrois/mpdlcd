@@ -10,7 +10,6 @@ import logging
 from logging import handlers as logging_handlers
 import optparse
 import socket
-import time
 import sys
 
 from . import enums
