@@ -23,12 +23,16 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+import logging
 import telnetlib
 import unicodedata
 import urllib.parse
 import select
 
 from .screen import Screen
+
+
+logger = logging.getLogger(__name__)
 
 
 class Server(object):
@@ -80,6 +84,7 @@ class Server(object):
 
     def send(self, command):
         encoded = self.encode(command + '\n')
+        logger.debug("Sending command %r", encoded)
         self.tn.write(encoded)
 
     def request(self, command_string):
