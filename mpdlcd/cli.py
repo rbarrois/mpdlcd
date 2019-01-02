@@ -382,7 +382,7 @@ def _make_parser():
     group.add_option(
         '--loglevel', dest='loglevel', type='choice',
         help='Logging level (%s; default: %s)' % ('/'.join(LOGLEVELS.keys()), DEFAULT_LOGLEVEL),
-        choices=LOGLEVELS.keys())
+        choices=list(LOGLEVELS.keys()))
     group.add_option(
         '-d', '--debug', dest='debug',
         help="Log debug output from the MODULES components",
@@ -449,12 +449,12 @@ def _read_config(filename):
 
     config = {}
 
-    for section, defaults in BASE_CONFIG.iteritems():
+    for section, defaults in BASE_CONFIG.items():
         # Patterns are handled separately
         if section == 'patterns':
             continue
 
-        for name, descr in defaults.iteritems():
+        for name, descr in defaults.items():
             kind, default = descr
             if section in parser.sections() and name in parser.options(section):
                 if kind == 'int':

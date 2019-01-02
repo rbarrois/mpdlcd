@@ -272,7 +272,7 @@ class ScreenPattern(object):
                 self._register_field(self.kind, self.options)
                 self.debug(
                     "Got widget '%s(%s)'", self.kind,
-                    ', '.join('%s=%r' % it for it in self.options.iteritems()),
+                    ', '.join('%s=%r' % it for it in self.options.items()),
                 )
                 self._reset()
 

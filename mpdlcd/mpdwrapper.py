@@ -32,18 +32,13 @@ class MPDClient(utils.AutoRetryCandidate):
         self.port = port
         self.password = password
 
-    def _decode_text(self, text):
-        # MPD protocol states that all data is UTF-8 encoded.
-        # Ref: http://www.musicpd.org/doc/protocol/ch01s02.html
-        return text.decode('utf8')
-
     def _decode_text_or_list(self, text_or_list):
         """Takes a 'text or list' and normalizes it to a UTF-8-decoded list."""
         # mpd2._read_objects returns dicts whose values may be text or lists.
         if isinstance(text_or_list, list):
-            return [self._decode_text(item) for item in text_or_list]
+            return text_or_list
         else:
-            return [self._decode_text(text_or_list)]
+            return [text_or_list]
 
     def _decode_dict(self, data):
         return dict(
