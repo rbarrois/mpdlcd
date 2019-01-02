@@ -1,6 +1,25 @@
 mpdlcd
 ======
 
+.. image:: https://secure.travis-ci.org/rbarrois/mpdlcd.svg?branch=master
+    :target: https://travis-ci.org/rbarrois/mpdlcd/
+
+.. image:: https://img.shields.io/pypi/v/mpdlcd.svg
+    :target: https://pypi.org/project/mpdlcd/
+    :alt: Latest Version
+
+.. image:: https://img.shields.io/pypi/pyversions/mpdlcd.svg
+    :target: https://pypi.org/project/mpdlcd/
+    :alt: Supported Python versions
+
+.. image:: https://img.shields.io/pypi/wheel/mpdlcd.svg
+    :target: https://pypi.org/project/mpdlcd/
+    :alt: Wheel status
+
+.. image:: https://img.shields.io/pypi/l/mpdlcd.svg
+    :target: https://pypi.org/project/mpdlcd/
+    :alt: License
+
 MPDLcd is a small adapter which will display the status of a MPD server on a LCD screen, through lcdproc.
 
 It allows defining various layouts depending on LCD size, with fix or moving parts.
