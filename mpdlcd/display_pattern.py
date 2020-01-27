@@ -330,7 +330,12 @@ class ScreenPattern(object):
                     st.leave_field()
 
                 elif st.state == IN_FIELD_OPTION_NAME:
-                    raise FormatError("Missing option value for %s at %d in %s" % (''.join(st.block), pos, line))
+                    if st.block:
+                        # `,spe}`
+                        raise FormatError("Missing option value for %s at %d in %s" % (''.join(st.block), pos, line))
+                    else:
+                        # `speed=2,}`
+                        st.leave_field()
 
                 elif st.state == IN_FIELD_OPTION_VALUE:
                     if st.quote:
