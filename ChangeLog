@@ -1,6 +1,12 @@
 0.5.3 (unreleased)
 ==================
 
+*New:*
+
+  - Provide more scroll modes for song fields: continuous with ``{song format="...",mode=c}``
+    and back-and-forth bouncing with ``{song format="...",mode=b}``
+  - Allow adjusting the separating text in continuous scroll with ``{song format="...",padding="   "}``
+
 *Bugfix:*
 
   - Don't crash on a set of options ending with a quoted value (e.g ``{song format="..."}``)

@@ -335,17 +335,25 @@ class SongField(Field):
     base_name = 'song'
     target_hooks = ['song']
 
-    def __init__(self, format='', width=-1, speed=2, **kwargs):
+    SCROLL_CONTINUOUS = 'c'
+    SCROLL_BOUNCE = 'b'
+
+    def __init__(
+            self, format='', width=-1, speed=2,
+            scroll=SCROLL_CONTINUOUS, padding='   ', **kwargs):
         self.format = format
         self.watched_fields = utils.extract_pattern(format)
         self.speed = int(speed)
+        self.scroll = scroll
+        self.padding = padding
         super(SongField, self).__init__(width=width, **kwargs)
 
     def add_to_screen(self, screen, left, top):
+        direction = 'm' if self.scroll == self.SCROLL_CONTINUOUS else 'h'
         return screen.add_scroller_widget(
             self.name,
             left=left, top=top, right=left + self.width - 1, bottom=top,
-            speed=self.speed, text=' ' * self.width,
+            speed=self.speed, text=' ' * self.width, direction=direction,
         )
 
     def register_hooks(self):
@@ -365,5 +373,9 @@ class SongField(Field):
             txt = self.format % self._song_dict(new_song)
         else:
             txt = ''
+
+        if len(txt) > self.width and self.scroll == self.SCROLL_CONTINUOUS:
+            txt = txt.strip() + self.padding
+
         logger.debug('Setting widget %s to %r', widget.ref, txt)
         self.set_widget_text(widget, txt)

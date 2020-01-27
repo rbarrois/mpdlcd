@@ -146,6 +146,21 @@ The scroll rate (move every N seconds), default 2.
 Fix the width of the field, or automatically adjust it if set to -1 (the default).
 .
 .TP
+.I mode
+The scrolling mode: can be
+.IR "c"
+for continuous (the default) or
+.IR "b"
+for back-and-forth bouncing
+.
+.TP
+.I padding
+When the scrolling mode is
+.IR c ","
+sets the padding between the end of the text and the beginning of its next copy;
+this is the three dashes in "gle Bells---Jing"
+.
+.TP
 .I format
 The printf-like string to use as a template for the displayed text.
 Strings with the
